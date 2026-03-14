@@ -18,29 +18,31 @@
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.511"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/login"
-        app:layout_constraintVertical_bias="0.08" />
+        app:layout_constraintVertical_bias="0.166" />
+
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="108dp"
         android:layout_height="38dp"
+        android:layout_marginTop="104dp"
         android:text="HelpDesk"
         android:textColor="@color/dark_blue"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/textView2"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.546" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="144dp"
         android:text="Добро пожаловать!"
         android:textAlignment="center"
         android:textColor="@color/dark_blue"
@@ -48,35 +50,33 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="289dp"
-        tools:ignore="MissingConstraints" />
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
 
     <EditText
         android:id="@+id/login"
         android:layout_width="366dp"
         android:layout_height="54dp"
-        android:layout_marginTop="25dp"
         android:ems="10"
         android:gravity="center_vertical"
         android:hint="Email/Login"
         android:inputType="textEmailAddress"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView2"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="30dp" />
 
     <EditText
         android:id="@+id/password"
         android:layout_width="366dp"
         android:layout_height="54dp"
-        android:layout_marginTop="20dp"
         android:ems="10"
         android:gravity="center_vertical"
         android:hint="Password"
         android:inputType="textEmailAddress"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.488"
+        app:layout_constraintTop_toBottomOf="@+id/login"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/login" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="20dp"  />
 
     <TextView
         android:id="@+id/textView3"
