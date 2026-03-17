@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Firebase keys
+google-services.json

@@ -21,18 +21,18 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AdminMain"
+            android:name=".admin.AdminMain"
             android:exported="false" />
 
         <activity
-            android:name=".UserMain"
+            android:name=".user.UserMain"
             android:exported="false" />
 
         <activity
-            android:name=".WorkerMain"
+            android:name=".worker.WorkerMain"
             android:exported="false" />
         <activity
-            android:name=".CreateTicketActivity"
+            android:name=".tickets.CreateTicketActivity"
             android:exported="false" />
     </application>
 
