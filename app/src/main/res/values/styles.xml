@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="figma_blue">#2E3192</color>
+
+    <style name="LabelStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/figma_blue</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
+    </style>
+
+    <style name="EditTextStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">45dp</item>
+        <item name="android:background">@drawable/edit_text_border</item>
+        <item name="android:paddingHorizontal">12dp</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+</resources>

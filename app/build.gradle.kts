@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "firstapp.helpdesk"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -44,4 +44,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation("com.firebaseui:firebase-ui-database:8.0.2")
+    // Для исправления ошибки с NonNull
+    implementation("androidx.annotation:annotation:1.7.1")
+
+    // Для работы с материальным дизайном (карточки, кнопки и т.д.)
+    implementation("com.google.android.material:material:1.11.0")
+
 }

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <View
+            android:id="@+id/view_status_color"
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
+            android:background="#27AE60" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_request_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#000"
+                android:textStyle="bold"
+                android:textColor="@color/figma_blue"/>
+
+            <TextView
+                android:id="@+id/tv_request_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Тема заявки..."
+                android:textSize="14sp"/>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
