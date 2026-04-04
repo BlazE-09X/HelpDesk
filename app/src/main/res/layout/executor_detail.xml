@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EEEEEE">
+
+    <View
+        android:id="@+id/detail_header"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:background="#00008B"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Заявка"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginStart="20dp"
+        app:layout_constraintTop_toTopOf="@id/detail_header"
+        app:layout_constraintBottom_toBottomOf="@id/detail_header"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/detail_header"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:id="@+id/tv_detail_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#005"
+                android:textColor="#00008B"
+                android:textSize="32sp"
+                android:textStyle="italic|bold" />
+
+            <TextView android:text="Тема" android:textColor="#00008B" android:textStyle="bold" android:layout_marginTop="10dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <EditText android:id="@+id/et_detail_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@android:color/white" android:padding="10dp" android:enabled="false"/>
+
+            <TextView android:text="Категория" android:textColor="#00008B" android:textStyle="bold" android:layout_marginTop="10dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <EditText android:id="@+id/et_detail_category" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@android:color/white" android:padding="10dp" android:enabled="false"/>
+
+            <TextView android:text="Приоритет" android:textColor="#00008B" android:textStyle="bold" android:layout_marginTop="10dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <EditText android:id="@+id/et_detail_priority" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@android:color/white" android:padding="10dp" android:enabled="false"/>
+
+            <TextView android:text="Описание" android:textColor="#00008B" android:textStyle="bold" android:layout_marginTop="10dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <EditText android:id="@+id/et_detail_description" android:layout_width="match_parent" android:layout_height="100dp" android:background="@android:color/white" android:padding="10dp" android:gravity="top" android:enabled="false"/>
+
+            <TextView android:text="Комментарии" android:textColor="#00008B" android:textStyle="bold" android:layout_marginTop="15dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <EditText android:id="@+id/et_detail_executor_comment" android:layout_width="match_parent" android:layout_height="80dp" android:background="@android:color/white" android:padding="10dp" android:hint="Введите комментарий..." android:gravity="top"/>
+
+            <TextView android:text="Поменять статус" android:textColor="#00008B" android:textStyle="bold" android:layout_marginTop="15dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <Spinner android:id="@+id/spinner_detail_status" android:layout_width="match_parent" android:layout_height="50dp" android:background="@android:color/white" android:layout_marginTop="5dp"/>
+
+            <Button
+                android:id="@+id/btn_detail_save"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_marginTop="25dp"
+                android:backgroundTint="#00008B"
+                android:text="Сохранить"
+                android:textColor="@android:color/white" />
+
+            <TextView
+                android:id="@+id/tv_detail_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Назад"
+                android:textColor="#808080"
+                android:layout_marginTop="15dp"
+                android:padding="10dp"/>
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

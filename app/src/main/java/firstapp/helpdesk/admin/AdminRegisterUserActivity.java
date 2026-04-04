@@ -23,7 +23,7 @@ import firstapp.helpdesk.R;
 
 public class AdminRegisterUserActivity extends AppCompatActivity {
 
-    // Переменные теперь строго соответствуют ID в твоем XML
+
     private EditText etName, etSurname, etPatronymic, etLogin, etPassword, etEmail, etPhone;
     private Spinner spinnerDept;
     private Button btnCreate;
@@ -49,7 +49,7 @@ public class AdminRegisterUserActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        // Связываем с ID из твоего XML файла
+        // Связываем с ID из XML файла
         etName = findViewById(R.id.et_name);
         etSurname = findViewById(R.id.et_surname);
         etPatronymic = findViewById(R.id.et_patronymic);

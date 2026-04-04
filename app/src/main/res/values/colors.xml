@@ -4,4 +4,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="dark_blue">#1B1D91</color>
     <color name="gray">#EAEAEA</color>
+    <color name="figma_blue">#2E3192</color>
 </resources>

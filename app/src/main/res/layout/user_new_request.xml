@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EEEEEE">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_user"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="15dp">
+                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Тема" android:textColor="#00008B" android:textStyle="bold"/>
+                <EditText android:id="@+id/et_request_title" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white" android:hint="Введите тему..." android:paddingHorizontal="10dp" android:textSize="14sp" android:importantForAutofill="no" android:inputType="text"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="15dp">
+                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Категория" android:textColor="#00008B" android:textStyle="bold"/>
+                <Spinner android:id="@+id/spinner_category" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white"/>
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/et_request_description"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:background="@android:color/white"
+                android:gravity="top"
+                android:hint="Введите описание вашей проблемы..."
+                android:padding="10dp"
+                android:textSize="14sp"
+                android:layout_marginBottom="15dp"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine"/>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="15dp">
+                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Приоритет" android:textColor="#00008B" android:textStyle="bold"/>
+                <Spinner android:id="@+id/spinner_priority" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="10dp">
+
+                <Button
+                    android:id="@+id/btn_attach_image"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Фото"
+                    android:backgroundTint="#607D8B"
+                    android:layout_marginEnd="5dp" />
+
+                <Button
+                    android:id="@+id/btn_attach_video"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Видео"
+                    android:backgroundTint="#607D8B"
+                    android:layout_marginStart="5dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_attachment_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Файлы не выбраны"
+                android:textAlignment="center"
+                android:textSize="12sp"
+                android:layout_marginBottom="10dp" />
+
+            <Button
+                android:id="@+id/btn_create_request"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:backgroundTint="#00008B"
+                android:text="Создать"
+                android:textColor="@android:color/white" />
+
+            <TextView
+                android:id="@+id/tv_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="30dp"
+                android:alpha="0.6"
+                android:text="Назад"
+                android:textColor="#2E3192" />
+
+
+        </LinearLayout>
+    </ScrollView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation_user"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        app:menu="@menu/user_bottom_menu"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

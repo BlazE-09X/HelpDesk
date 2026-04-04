@@ -1,3 +1,24 @@
 <resources>
     <string name="app_name">HelpDesk</string>
+
+        <string-array name="categories_array">
+            <item>Сантехника</item>
+            <item>Тех Поддержка</item>
+            <item>Лифт</item>
+            <item>Электрика</item>
+        </string-array>
+
+        <string-array name="priority_array">
+            <item>Высокая</item>
+            <item>Средняя</item>
+            <item>Низкая</item>
+        </string-array>
+
+        <string-array name="status_array_executor">
+            <item>Новая</item>
+            <item>В работе</item>
+            <item>Выполнено</item>
+            <item>Отклонено</item>
+        </string-array>
+
 </resources>

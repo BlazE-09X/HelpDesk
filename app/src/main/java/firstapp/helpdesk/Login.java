@@ -10,10 +10,13 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import firstapp.helpdesk.admin.AdminMain;
+import firstapp.helpdesk.executor.ExecutorMain;
 import firstapp.helpdesk.user.UserMain;
-import firstapp.helpdesk.worker.WorkerMain;
+import firstapp.helpdesk.executor.WorkerMain;
 
 public class Login extends AppCompatActivity {
 
@@ -41,30 +44,49 @@ public class Login extends AppCompatActivity {
                 return;
             }
 
-            // Пытаемся войти
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {
-                            // Вход успешен
-                            redirectByUserRole(email);
+                            redirectByUserRole();
                         } else {
-                            // Если вход не удался — просто сообщаем об ошибке.
-                            Toast.makeText(this, "Ошибка доступа: проверьте данные или обратитесь к администратору", Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Ошибка входа: проверьте почту и пароль", Toast.LENGTH_LONG).show();
                         }
                     });
         });
     }
 
-    private void redirectByUserRole(String email) {
-        Intent intent;
-        if (email.contains("admin")) {
-            intent = new Intent(this, AdminMain.class);
-        } else if (email.contains("worker")) {
-            intent = new Intent(this, WorkerMain.class);
-        } else {
-            intent = new Intent(this, UserMain.class);
-        }
-        startActivity(intent);
-        finish(); // Закрываем экран логина, чтобы нельзя было вернуться назад кнопкой
+    private void redirectByUserRole() {
+        if (mAuth.getCurrentUser() == null) return;
+
+        String uid = mAuth.getCurrentUser().getUid();
+        // ВАЖНО: Проверь в Firebase, что папка называется "users" (маленькими буквами)
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
+
+        userRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()) {
+                String role = task.getResult().child("role").getValue(String.class);
+
+                if (role == null) {
+                    Toast.makeText(this, "Роль не указана", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Intent intent;
+                // Проверяем все возможные варианты написания роли
+                if (role.equalsIgnoreCase("Администратор") || role.equalsIgnoreCase("admin")) {
+                    intent = new Intent(this, AdminMain.class);
+                } else if (role.equalsIgnoreCase("Исполнитель") || role.equalsIgnoreCase("worker") || role.equalsIgnoreCase("executor")) {
+                    intent = new Intent(this, ExecutorMain.class);
+                } else {
+                    intent = new Intent(this, UserMain.class);
+                }
+
+                startActivity(intent);
+                finish();
+            } else {
+                Toast.makeText(this, "Данные пользователя не найдены в БД", Toast.LENGTH_SHORT).show();
+                mAuth.signOut();
+            }
+        });
     }
 }

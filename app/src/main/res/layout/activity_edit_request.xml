@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EEEEEE">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_user"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp">
+                <TextView
+                    android:id="@+id/tv_edit_request_number"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="#000"
+                    android:textColor="#00008B"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="● Новая"
+                    android:textColor="#00BFFF"
+                    android:textSize="22sp"
+                    android:textStyle="italic|bold" />
+            </RelativeLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_marginBottom="15dp">
+                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Тема" android:textColor="#00008B" android:textStyle="bold"/>
+                <EditText android:id="@+id/et_edit_title" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white" android:paddingHorizontal="10dp"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_marginBottom="15dp">
+                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Категория" android:textColor="#00008B" android:textStyle="bold"/>
+                <Spinner android:id="@+id/spinner_edit_category" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white"/>
+            </LinearLayout>
+
+            <EditText android:id="@+id/et_edit_description" android:layout_width="match_parent" android:layout_height="120dp" android:background="@android:color/white" android:gravity="top" android:padding="10dp" android:layout_marginBottom="15dp"/>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_marginBottom="15dp">
+                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Приоритет" android:textColor="#00008B" android:textStyle="bold"/>
+                <Spinner android:id="@+id/spinner_edit_priority" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white"/>
+            </LinearLayout>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Комментарии" android:textColor="#00008B" android:textStyle="bold" android:layout_marginBottom="5dp"/>
+            <EditText android:id="@+id/et_edit_comment" android:layout_width="match_parent" android:layout_height="80dp" android:background="@android:color/white" android:hint="Можете ввести комментарий.." android:padding="10dp" android:textSize="14sp"/>
+
+            <Button android:id="@+id/btn_save_changes" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="20dp" android:backgroundTint="#00008B" android:text="Сохранить" android:textColor="@android:color/white" />
+        </LinearLayout>
+    </ScrollView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation_user"
+        android:layout_width="match_parent" android:layout_height="70dp"
+        app:menu="@menu/user_bottom_menu"
+        app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

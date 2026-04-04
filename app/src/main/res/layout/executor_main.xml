@@ -7,51 +7,55 @@
     android:background="#EEEEEE">
 
     <View
-        android:id="@+id/header"
+        android:id="@+id/executor_header"
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:background="#00008B"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
+        android:id="@+id/tv_executor_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Мои заявки"
+        android:text="Пользователи"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginStart="16dp"
-        app:layout_constraintTop_toTopOf="@id/header"
-        app:layout_constraintBottom_toBottomOf="@id/header"
+        app:layout_constraintTop_toTopOf="@id/executor_header"
+        app:layout_constraintBottom_toBottomOf="@id/executor_header"
         app:layout_constraintStart_toStartOf="parent" />
 
     <EditText
-        android:id="@+id/et_search_requests"
+        android:id="@+id/et_executor_search"
         android:layout_width="160dp"
-        android:layout_height="40dp"
+        android:layout_height="35dp"
         android:layout_marginEnd="16dp"
-        android:background="@drawable/loupe"
+        android:background="@drawable/search_bg"
         android:hint="Поиск..."
-        android:paddingHorizontal="15dp"
+        android:paddingStart="15dp"
         android:textSize="14sp"
-        app:layout_constraintTop_toTopOf="@id/header"
-        app:layout_constraintBottom_toBottomOf="@id/header"
+        android:drawableEnd="@drawable/loupe"
+        android:paddingEnd="10dp"
+        app:layout_constraintTop_toTopOf="@id/executor_header"
+        app:layout_constraintBottom_toBottomOf="@id/executor_header"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_user_requests"
+        android:id="@+id/rv_executor_requests"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="10dp"
-        app:layout_constraintTop_toBottomOf="@id/header"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_user" />
+        app:layout_constraintTop_toBottomOf="@id/executor_header"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_executor" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation_user"
+        android:id="@+id/bottom_navigation_executor"
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:background="@android:color/white"
-        app:menu="@menu/user_bottom_menu"
+        app:menu="@menu/executor_bottom_menu"
+        app:labelVisibilityMode="unlabeled"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
