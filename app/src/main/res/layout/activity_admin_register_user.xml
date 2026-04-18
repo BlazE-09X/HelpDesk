@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@android:color/white"
     android:padding="20dp"
     tools:context=".admin.AdminRegisterUserActivity">
@@ -12,7 +12,7 @@
         android:id="@+id/tv_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Registration"
+        android:text="Регистрация жителя"
         android:textColor="#333333"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -32,29 +32,39 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView style="@style/LabelStyle" android:text="Имя пользователя" />
-            <EditText android:id="@+id/et_name" style="@style/EditTextStyle" android:inputType="textPersonName" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Имя" android:layout_marginTop="10dp" />
+            <EditText android:id="@+id/et_name" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/edit_text_border" android:padding="10dp" android:inputType="textPersonName" />
 
-            <TextView style="@style/LabelStyle" android:text="Фамилия пользователя" />
-            <EditText android:id="@+id/et_surname" style="@style/EditTextStyle" android:inputType="textPersonName" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Фамилия" android:layout_marginTop="10dp" />
+            <EditText android:id="@+id/et_surname" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/edit_text_border" android:padding="10dp" android:inputType="textPersonName" />
 
-            <TextView style="@style/LabelStyle" android:text="Отчество (если есть)" />
-            <EditText android:id="@+id/et_patronymic" style="@style/EditTextStyle" android:inputType="textPersonName" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Отчество" android:layout_marginTop="10dp" />
+            <EditText android:id="@+id/et_patronymic" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/edit_text_border" android:padding="10dp" android:inputType="textPersonName" />
 
-            <TextView style="@style/LabelStyle" android:text="Логин" />
-            <EditText android:id="@+id/et_login" style="@style/EditTextStyle" android:inputType="text" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Логин" android:layout_marginTop="10dp" />
+            <EditText android:id="@+id/et_login" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/edit_text_border" android:padding="10dp" android:inputType="text" />
 
-            <TextView style="@style/LabelStyle" android:text="Пароль" />
-            <EditText android:id="@+id/et_password" style="@style/EditTextStyle" android:inputType="textPassword" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Пароль" android:layout_marginTop="10dp" />
+            <EditText android:id="@+id/et_password" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/edit_text_border" android:padding="10dp" android:inputType="textPassword" />
 
-            <TextView style="@style/LabelStyle" android:text="Почта/Email" />
-            <EditText android:id="@+id/et_email" style="@style/EditTextStyle" android:inputType="textEmailAddress" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Email" android:layout_marginTop="10dp" />
+            <EditText android:id="@+id/et_email" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/edit_text_border" android:padding="10dp" android:inputType="textEmailAddress" />
 
-            <TextView style="@style/LabelStyle" android:text="Номер телефона" />
-            <EditText android:id="@+id/et_phone" style="@style/EditTextStyle" android:hint="+7(___) ___ __ __" android:inputType="phone" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Телефон" android:layout_marginTop="10dp" />
+            <EditText android:id="@+id/et_phone" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/edit_text_border" android:padding="10dp" android:inputType="phone" />
 
-            <TextView style="@style/LabelStyle" android:text="Отдел" />
-            <Spinner android:id="@+id/spinner_dept" style="@style/EditTextStyle" android:background="@drawable/edit_text_border" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Выберите ЖК" android:layout_marginTop="15dp" android:textStyle="bold" />
+            <Spinner android:id="@+id/spinner_company" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/edit_text_border" />
+
+            <Button
+                android:id="@+id/btn_add_company_quick"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="+ Добавить новый ЖК"
+                android:textSize="12sp"
+                android:textAllCaps="false"
+                android:backgroundTint="#808080"
+                android:layout_marginTop="5dp" />
 
         </LinearLayout>
     </ScrollView>
@@ -64,7 +74,7 @@
         android:layout_width="match_parent"
         android:layout_height="55dp"
         android:backgroundTint="@color/figma_blue"
-        android:text="Создать"
+        android:text="Зарегистрировать жителя"
         android:textAllCaps="false"
         android:textColor="@android:color/white"
         app:cornerRadius="10dp"

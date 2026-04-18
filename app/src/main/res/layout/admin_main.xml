@@ -10,7 +10,7 @@
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:background="@color/figma_blue"
+        android:background="#00008B"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -19,12 +19,37 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginTop="25dp"
-        android:text="Главный экран"
+        android:text="Статистика"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_admin_profile"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="25dp"
+        android:src="@drawable/profile"
+        app:tint="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btn_reports"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:text="Отчеты"
+        android:textSize="12sp"
+        android:backgroundTint="#FFFFFF"
+        android:textColor="#00008B"
+        app:layout_constraintEnd_toStartOf="@id/iv_admin_profile"
+        app:layout_constraintTop_toTopOf="@id/iv_admin_profile"
+        app:layout_constraintBottom_toBottomOf="@id/iv_admin_profile" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -38,16 +63,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Статистика"
-                android:textColor="@color/figma_blue"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:layout_gravity="center"
-                android:layout_marginBottom="16dp"/>
-
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
@@ -59,7 +74,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="Отказано: 1"
+                    android:text="Отказано: 0"
                     android:textColor="@android:color/white"
                     android:textSize="20sp"
                     android:textStyle="bold"/>
@@ -76,7 +91,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="В работе: 1"
+                    android:text="В работе: 0"
                     android:textColor="@android:color/white"
                     android:textSize="20sp"
                     android:textStyle="bold"/>
@@ -93,7 +108,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="Сделано: 1"
+                    android:text="Сделано: 0"
                     android:textColor="@android:color/white"
                     android:textSize="20sp"
                     android:textStyle="bold"/>
@@ -110,7 +125,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="Новые: 2"
+                    android:text="Новые: 0"
                     android:textColor="@android:color/white"
                     android:textSize="20sp"
                     android:textStyle="bold"/>
@@ -121,7 +136,7 @@
                 android:layout_height="wrap_content"
                 android:text="Последние заявки"
                 android:layout_marginTop="16dp"
-                android:textColor="@color/figma_blue"
+                android:textColor="#00008B"
                 android:textStyle="bold"/>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -139,7 +154,7 @@
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:background="@android:color/white"
-        app:itemIconTint="@color/figma_blue"
+        app:itemIconTint="#00008B"
         app:labelVisibilityMode="unlabeled"
         app:menu="@menu/admin_bottom_menu"
         app:layout_constraintBottom_toBottomOf="parent" />

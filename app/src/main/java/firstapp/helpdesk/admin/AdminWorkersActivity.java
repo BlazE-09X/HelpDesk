@@ -22,19 +22,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 import firstapp.helpdesk.R;
 
-public class AdminUsers extends AppCompatActivity {
+public class AdminWorkersActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private DatabaseReference mDatabase;
-    private FirebaseRecyclerAdapter<UserModel, UserViewHolder> adapter;
-    private String currentAdminUid;
+    private FirebaseRecyclerAdapter<UserModel, WorkerViewHolder> adapter;
 
     private static class WrapContentLinearLayoutManager extends LinearLayoutManager {
         public WrapContentLinearLayoutManager(Context context) {
@@ -53,66 +51,64 @@ public class AdminUsers extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.admin_users);
+        setContentView(R.layout.activity_admin_workers);
 
         mDatabase = FirebaseDatabase.getInstance().getReference("users");
-        currentAdminUid = FirebaseAuth.getInstance().getUid();
-        
-        recyclerView = findViewById(R.id.rv_admin_users);
+        recyclerView = findViewById(R.id.rv_admin_workers);
         recyclerView.setLayoutManager(new WrapContentLinearLayoutManager(this));
 
-        EditText etSearch = findViewById(R.id.et_search_users);
+        EditText etSearch = findViewById(R.id.et_search_workers);
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                searchUsers(s.toString().trim());
+                searchWorkers(s.toString().trim());
             }
             @Override
             public void afterTextChanged(Editable s) {}
         });
 
-        Query query = mDatabase.orderByChild("role").equalTo("user");
+        Query query = mDatabase.orderByChild("role").equalTo("Исполнитель");
         setupAdapter(query);
 
-        findViewById(R.id.fab_add_user).setOnClickListener(v -> 
-            startActivity(new Intent(AdminUsers.this, AdminRegisterUserActivity.class)));
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_workers);
+        bottomNav.setSelectedItemId(R.id.nav_workers);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) { startActivity(new Intent(this, AdminMain.class)); return true; }
+            if (id == R.id.nav_users) { startActivity(new Intent(this, AdminUsers.class)); return true; }
+            if (id == R.id.nav_tasks) { startActivity(new Intent(this, Companies.class)); return true; }
+            if (id == R.id.nav_housing) { startActivity(new Intent(this, HousingComplexesActivity.class)); return true; }
+            return id == R.id.nav_workers;
+        });
 
-        setupNavigation();
+        findViewById(R.id.fab_add_worker_new).setOnClickListener(v -> startActivity(new Intent(this, AdminRegisterWorker.class)));
     }
 
     private void setupAdapter(Query query) {
         FirebaseRecyclerOptions<UserModel> options = new FirebaseRecyclerOptions.Builder<UserModel>()
-                .setQuery(query, UserModel.class)
-                .build();
+                .setQuery(query, UserModel.class).build();
 
         if (adapter != null) {
             adapter.stopListening();
         }
 
-        adapter = new FirebaseRecyclerAdapter<UserModel, UserViewHolder>(options) {
+        adapter = new FirebaseRecyclerAdapter<UserModel, WorkerViewHolder>(options) {
             @Override
-            protected void onBindViewHolder(@NonNull UserViewHolder holder, int position, @NonNull UserModel model) {
-                boolean isUser = "user".equalsIgnoreCase(model.getRole());
-                boolean isNotCurrentAdmin = model.getUid() == null || !model.getUid().equals(currentAdminUid);
-
-                if (isUser && isNotCurrentAdmin) {
+            protected void onBindViewHolder(@NonNull WorkerViewHolder holder, int position, @NonNull UserModel model) {
+                if (model.getRole() != null && model.getRole().equals("Исполнитель")) {
                     holder.itemView.setVisibility(View.VISIBLE);
                     holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                     
-                    String fullName = ((model.getSurname() != null ? model.getSurname() : "") + " " + 
-                                     (model.getName() != null ? model.getName() : "") + " " + 
-                                     (model.getPatronymic() != null ? model.getPatronymic() : "")).trim();
-                    
+                    String fullName = ((model.getSurname() != null ? model.getSurname() : "") + " " + (model.getName() != null ? model.getName() : "")).trim();
                     holder.name.setText(fullName.isEmpty() ? model.getEmail() : fullName);
-                    holder.info.setText("ЖК: " + (model.getCompanyName() != null ? model.getCompanyName() : "Не указан"));
-
+                    holder.info.setText("Спец.: " + (model.getSpecialization() != null ? model.getSpecialization() : "Не указана"));
+                    
                     holder.btnDelete.setOnClickListener(v -> {
                         int currentPos = holder.getBindingAdapterPosition();
                         if (currentPos != RecyclerView.NO_POSITION) {
-                            getRef(currentPos).removeValue().addOnSuccessListener(aVoid -> 
-                                Toast.makeText(AdminUsers.this, "Житель удален", Toast.LENGTH_SHORT).show());
+                            getRef(currentPos).removeValue().addOnSuccessListener(aVoid -> Toast.makeText(AdminWorkersActivity.this, "Удалено", Toast.LENGTH_SHORT).show());
                         }
                     });
                 } else {
@@ -120,47 +116,33 @@ public class AdminUsers extends AppCompatActivity {
                     holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
                 }
             }
-
             @NonNull
             @Override
-            public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            public WorkerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
                 View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_user, parent, false);
-                return new UserViewHolder(view);
+                return new WorkerViewHolder(view);
             }
         };
         recyclerView.setAdapter(adapter);
         adapter.startListening();
     }
 
-    private void searchUsers(String text) {
+    private void searchWorkers(String text) {
         Query query;
         if (text.isEmpty()) {
-            query = mDatabase.orderByChild("role").equalTo("user");
+            query = mDatabase.orderByChild("role").equalTo("Исполнитель");
         } else {
-            // Ищем по новому полю search_name
+            // Ищем по search_name (уже в нижнем регистре)
             String searchText = text.toLowerCase();
             query = mDatabase.orderByChild("search_name").startAt(searchText).endAt(searchText + "\uf8ff");
         }
         setupAdapter(query);
     }
 
-    private void setupNavigation() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_users);
-        bottomNav.setSelectedItemId(R.id.nav_users);
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home) { startActivity(new Intent(this, AdminMain.class)); return true; }
-            if (id == R.id.nav_workers) { startActivity(new Intent(this, AdminWorkersActivity.class)); return true; }
-            if (id == R.id.nav_tasks) { startActivity(new Intent(this, Companies.class)); return true; }
-            if (id == R.id.nav_housing) { startActivity(new Intent(this, HousingComplexesActivity.class)); return true; }
-            return id == R.id.nav_users;
-        });
-    }
-
-    public static class UserViewHolder extends RecyclerView.ViewHolder {
+    public static class WorkerViewHolder extends RecyclerView.ViewHolder {
         TextView name, info;
         ImageView btnDelete;
-        public UserViewHolder(@NonNull View itemView) {
+        public WorkerViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.tv_user_name);
             info = itemView.findViewById(R.id.tv_user_role);

@@ -21,6 +21,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp">
+
                 <TextView
                     android:id="@+id/tv_edit_request_number"
                     android:layout_width="wrap_content"
@@ -29,43 +30,157 @@
                     android:textColor="#00008B"
                     android:textSize="24sp"
                     android:textStyle="bold" />
+
                 <TextView
+                    android:id="@+id/tv_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
-                    android:text="● Новая"
+                    android:text="Статус"
                     android:textColor="#00BFFF"
                     android:textSize="22sp"
                     android:textStyle="italic|bold" />
             </RelativeLayout>
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_marginBottom="15dp">
-                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Тема" android:textColor="#00008B" android:textStyle="bold"/>
-                <EditText android:id="@+id/et_edit_title" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white" android:paddingHorizontal="10dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:gravity="center_vertical">
+                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Тема" android:textColor="#00008B" android:textStyle="bold" />
+                <EditText android:id="@+id/et_edit_title" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white" android:paddingHorizontal="10dp" />
             </LinearLayout>
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_marginBottom="15dp">
-                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Категория" android:textColor="#00008B" android:textStyle="bold"/>
-                <Spinner android:id="@+id/spinner_edit_category" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:gravity="center_vertical">
+                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Категория" android:textColor="#00008B" android:textStyle="bold" />
+                <Spinner android:id="@+id/spinner_edit_category" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white" />
             </LinearLayout>
 
-            <EditText android:id="@+id/et_edit_description" android:layout_width="match_parent" android:layout_height="120dp" android:background="@android:color/white" android:gravity="top" android:padding="10dp" android:layout_marginBottom="15dp"/>
+            <EditText
+                android:id="@+id/et_edit_description"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginBottom="15dp"
+                android:background="@android:color/white"
+                android:gravity="top"
+                android:padding="10dp" />
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_marginBottom="15dp">
-                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Приоритет" android:textColor="#00008B" android:textStyle="bold"/>
-                <Spinner android:id="@+id/spinner_edit_priority" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:gravity="center_vertical">
+                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Приоритет" android:textColor="#00008B" android:textStyle="bold" />
+                <Spinner android:id="@+id/spinner_edit_priority" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white" />
             </LinearLayout>
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Комментарии" android:textColor="#00008B" android:textStyle="bold" android:layout_marginBottom="5dp"/>
-            <EditText android:id="@+id/et_edit_comment" android:layout_width="match_parent" android:layout_height="80dp" android:background="@android:color/white" android:hint="Можете ввести комментарий.." android:padding="10dp" android:textSize="14sp"/>
+            <LinearLayout
+                android:id="@+id/ll_rating_block"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="15dp"
+                android:gravity="center"
+                android:visibility="gone">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Оцените работу исполнителя" android:textColor="#00008B" android:textStyle="bold"/>
+                <RatingBar
+                    android:id="@+id/rb_request_rating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:numStars="5"
+                    android:stepSize="1.0" />
+            </LinearLayout>
 
-            <Button android:id="@+id/btn_save_changes" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="20dp" android:backgroundTint="#00008B" android:text="Сохранить" android:textColor="@android:color/white" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+                <Button android:id="@+id/btn_edit_attach_image" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="5dp" android:layout_weight="1" android:text="Добавить фото" />
+                <Button android:id="@+id/btn_edit_attach_video" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="5dp" android:layout_weight="1" android:text="Добавить видео" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/iv_edit_image_preview"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginBottom="10dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+            <VideoView
+                android:id="@+id/vv_edit_video_preview"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginBottom="10dp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+                <Button android:id="@+id/btn_edit_open_image" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="5dp" android:layout_weight="1" android:text="Открыть фото" android:visibility="gone" />
+                <Button android:id="@+id/btn_edit_open_video" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="5dp" android:layout_weight="1" android:text="Открыть видео" android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+                <Button android:id="@+id/btn_edit_remove_image" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="5dp" android:layout_weight="1" android:enabled="false" android:text="Удалить фото" />
+                <Button android:id="@+id/btn_edit_remove_video" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="5dp" android:layout_weight="1" android:enabled="false" android:text="Удалить видео" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_edit_attachment_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:text="Вложения: - / -"
+                android:textAlignment="center"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_open_chat"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="5dp"
+                android:backgroundTint="#FF9800"
+                android:text="Чат по заявке"
+                android:textColor="@android:color/white" />
+
+            <Button
+                android:id="@+id/btn_save_changes"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="#00008B"
+                android:text="Сохранить"
+                android:textColor="@android:color/white" />
+
+            <Button
+                android:id="@+id/btn_delete_request"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="#F44336"
+                android:text="Удалить заявку"
+                android:textColor="@android:color/white" />
         </LinearLayout>
     </ScrollView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation_user"
-        android:layout_width="match_parent" android:layout_height="70dp"
-        app:menu="@menu/user_bottom_menu"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/user_bottom_menu" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

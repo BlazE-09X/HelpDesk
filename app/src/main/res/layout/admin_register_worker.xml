@@ -27,76 +27,105 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/header_reg" />
 
-    <EditText
-        android:id="@+id/et_worker_name"
-        android:layout_width="0dp"
-        android:layout_height="55dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="32dp"
-        android:background="@android:drawable/editbox_background"
-        android:hint="Полное имя исполнителя"
-        android:inputType="textPersonName"
-        android:padding="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header_reg" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/header_reg"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-    <EditText
-        android:id="@+id/et_worker_email"
-        android:layout_width="0dp"
-        android:layout_height="55dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="32dp"
-        android:background="@android:drawable/editbox_background"
-        android:hint="Email (логин)"
-        android:inputType="textEmailAddress"
-        android:padding="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/et_worker_name" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="32dp">
 
-    <EditText
-        android:id="@+id/et_worker_password"
-        android:layout_width="0dp"
-        android:layout_height="55dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="32dp"
-        android:background="@android:drawable/editbox_background"
-        android:hint="Пароль (мин. 6 символов)"
-        android:inputType="textPassword"
-        android:padding="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/et_worker_email" />
+            <EditText
+                android:id="@+id/et_worker_surname"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:background="@android:drawable/editbox_background"
+                android:hint="Фамилия"
+                android:inputType="textPersonName"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"/>
 
-    <Button
-        android:id="@+id/btn_register_worker"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="32dp"
-        android:backgroundTint="#00008B"
-        android:text="Создать аккаунт"
-        android:textColor="@android:color/white"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/et_worker_password" />
+            <EditText
+                android:id="@+id/et_worker_name"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:background="@android:drawable/editbox_background"
+                android:hint="Имя"
+                android:inputType="textPersonName"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="* Данные будут сразу доступны для входа"
-        android:textColor="#757575"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_register_worker" />
+            <EditText
+                android:id="@+id/et_worker_email"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:background="@android:drawable/editbox_background"
+                android:hint="Email (логин)"
+                android:inputType="textEmailAddress"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"/>
+
+            <EditText
+                android:id="@+id/et_worker_password"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:background="@android:drawable/editbox_background"
+                android:hint="Пароль (мин. 6 символов)"
+                android:inputType="textPassword"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Специализация"
+                android:textColor="#00008B"
+                android:textStyle="bold"
+                android:layout_marginBottom="5dp"/>
+            <Spinner
+                android:id="@+id/spinner_worker_specialization"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:background="@android:drawable/btn_default"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Компания"
+                android:textColor="#00008B"
+                android:textStyle="bold"
+                android:layout_marginBottom="5dp"/>
+            <Spinner
+                android:id="@+id/spinner_worker_company"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:background="@android:drawable/btn_default"
+                android:layout_marginBottom="24dp"/>
+
+            <Button
+                android:id="@+id/btn_register_worker"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:backgroundTint="#00008B"
+                android:text="Создать аккаунт"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="* Данные будут сразу доступны для входа"
+                android:textColor="#757575"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -27,10 +27,15 @@
                 <Spinner android:id="@+id/spinner_category" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white"/>
             </LinearLayout>
 
+            <LinearLayout android:id="@+id/ll_worker_selection" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="15dp">
+                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Исполнитель" android:textColor="#00008B" android:textStyle="bold"/>
+                <Spinner android:id="@+id/spinner_worker" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white"/>
+            </LinearLayout>
+
             <EditText
                 android:id="@+id/et_request_description"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="100dp"
                 android:background="@android:color/white"
                 android:gravity="top"
                 android:hint="Введите описание вашей проблемы..."
@@ -45,29 +50,55 @@
                 <Spinner android:id="@+id/spinner_priority" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white"/>
             </LinearLayout>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Тип исполнения"
+                android:textColor="#00008B"
+                android:textStyle="bold"
+                android:layout_marginBottom="5dp"/>
+            <RadioGroup
+                android:id="@+id/rg_execution_type"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="15dp">
+                <RadioButton android:id="@+id/rb_immediate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Немедленно" android:checked="true"/>
+                <RadioButton android:id="@+id/rb_planned" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Запланированное начало"/>
+                <RadioButton android:id="@+id/rb_deadline" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Конкретный дедлайн"/>
+            </RadioGroup>
+
+            <LinearLayout
+                android:id="@+id/ll_date_picker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="15dp"
+                android:visibility="gone">
+                <TextView
+                    android:id="@+id/tv_selected_date"
+                    android:layout_width="0dp"
+                    android:layout_height="45dp"
+                    android:layout_weight="1"
+                    android:background="@android:color/white"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="10dp"
+                    android:text="Выберите дату и время" />
+                <Button
+                    android:id="@+id/btn_pick_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Выбрать"
+                    android:layout_marginStart="5dp"/>
+            </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="10dp">
-
-                <Button
-                    android:id="@+id/btn_attach_image"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Фото"
-                    android:backgroundTint="#607D8B"
-                    android:layout_marginEnd="5dp" />
-
-                <Button
-                    android:id="@+id/btn_attach_video"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Видео"
-                    android:backgroundTint="#607D8B"
-                    android:layout_marginStart="5dp" />
+                <Button android:id="@+id/btn_attach_image" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Фото" android:backgroundTint="#607D8B" android:layout_marginEnd="5dp" />
+                <Button android:id="@+id/btn_attach_video" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Видео" android:backgroundTint="#607D8B" android:layout_marginStart="5dp" />
             </LinearLayout>
 
             <TextView
@@ -79,10 +110,21 @@
                 android:textSize="12sp"
                 android:layout_marginBottom="10dp" />
 
+            <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                <ImageView android:id="@+id/iv_request_image_preview" android:layout_width="match_parent" android:layout_height="200dp" android:scaleType="centerInside" android:visibility="gone" android:background="#CCCCCC"/>
+                <Button android:id="@+id/btn_remove_image" android:layout_width="40dp" android:layout_height="40dp" android:layout_gravity="top|end" android:text="X" android:padding="0dp" android:visibility="gone" android:backgroundTint="#FF0000"/>
+            </FrameLayout>
+
+            <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp">
+                <VideoView android:id="@+id/vv_request_video_preview" android:layout_width="match_parent" android:layout_height="200dp" android:visibility="gone" />
+                <Button android:id="@+id/btn_remove_video" android:layout_width="40dp" android:layout_height="40dp" android:layout_gravity="top|end" android:text="X" android:padding="0dp" android:visibility="gone" android:backgroundTint="#FF0000"/>
+            </FrameLayout>
+
             <Button
                 android:id="@+id/btn_create_request"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:layout_marginTop="20dp"
                 android:backgroundTint="#00008B"
                 android:text="Создать"
                 android:textColor="@android:color/white" />
@@ -97,8 +139,6 @@
                 android:alpha="0.6"
                 android:text="Назад"
                 android:textColor="#2E3192" />
-
-
         </LinearLayout>
     </ScrollView>
 

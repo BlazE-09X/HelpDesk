@@ -1,6 +1,8 @@
 package firstapp.helpdesk.executor;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -14,31 +16,38 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import firstapp.helpdesk.Login;
 import firstapp.helpdesk.R;
+import firstapp.helpdesk.user.RequestModel;
+
+import java.util.Locale;
 
 public class ExecutorProfile extends AppCompatActivity {
 
-    private TextView tvName, tvLogin, tvPhone, tvEmail;
+    private TextView tvName, tvLogin, tvPhone, tvEmail, tvRating;
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.executor_profile);
 
+        sharedPreferences = getSharedPreferences("HelpDeskPrefs", Context.MODE_PRIVATE);
+
         tvName = findViewById(R.id.tv_executor_name_header);
         tvLogin = findViewById(R.id.tv_executor_login);
         tvPhone = findViewById(R.id.tv_executor_phone);
         tvEmail = findViewById(R.id.tv_executor_email);
+        tvRating = findViewById(R.id.tv_executor_rating);
 
         loadExecutorData();
+        calculateAverageRating();
 
-        // Кнопка выхода
         findViewById(R.id.btn_executor_logout).setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
+            sharedPreferences.edit().clear().apply();
             startActivity(new Intent(this, Login.class));
-            finishAffinity(); // Закрыть все окна
+            finishAffinity();
         });
 
-        // Навигация
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_executor);
         bottomNav.setSelectedItemId(R.id.nav_executor_profile);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -53,8 +62,9 @@ public class ExecutorProfile extends AppCompatActivity {
     }
 
     private void loadExecutorData() {
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Users").child(uid);
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid == null) return;
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(uid);
 
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -65,9 +75,38 @@ public class ExecutorProfile extends AppCompatActivity {
                     String email = snapshot.child("email").getValue(String.class);
 
                     tvName.setText(name);
-                    tvLogin.setText(name); // Или поле login, если оно есть
+                    tvLogin.setText(name);
                     tvPhone.setText(phone);
                     tvEmail.setText(email);
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void calculateAverageRating() {
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid == null) return;
+        
+        DatabaseReference requestsRef = FirebaseDatabase.getInstance().getReference("Requests");
+        requestsRef.orderByChild("executorId").equalTo(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                float totalRating = 0;
+                int count = 0;
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    RequestModel model = ds.getValue(RequestModel.class);
+                    if (model != null && model.getRating() > 0) {
+                        totalRating += model.getRating();
+                        count++;
+                    }
+                }
+                
+                if (count > 0) {
+                    float avg = totalRating / count;
+                    tvRating.setText(String.format(Locale.getDefault(), "Рейтинг: %.1f ⭐", avg));
+                } else {
+                    tvRating.setText("Рейтинг: 0.0 ⭐");
                 }
             }
 

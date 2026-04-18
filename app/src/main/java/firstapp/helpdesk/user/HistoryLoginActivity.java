@@ -1,6 +1,8 @@
 package firstapp.helpdesk.user;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,13 +26,28 @@ public class HistoryLoginActivity extends AppCompatActivity {
     // Используем именно HistoryViewHolder, чтобы не было конфликтов с UserMain
     private FirebaseRecyclerAdapter<HistoryModel, HistoryViewHolder> adapter;
 
+    // Кастомный менеджер для предотвращения краша "Inconsistency detected"
+    private static class WrapContentLinearLayoutManager extends LinearLayoutManager {
+        public WrapContentLinearLayoutManager(Context context) {
+            super(context);
+        }
+        @Override
+        public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+            try {
+                super.onLayoutChildren(recycler, state);
+            } catch (IndexOutOfBoundsException e) {
+                Log.e("RecyclerView", "Inconsistency detected");
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.user_history_login);
 
         recyclerView = findViewById(R.id.rv_login_history);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setLayoutManager(new WrapContentLinearLayoutManager(this));
 
         // Кнопка назад
         View backBtn = findViewById(R.id.tv_back_button);

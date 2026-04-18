@@ -1,9 +1,11 @@
 package firstapp.helpdesk.user;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +29,21 @@ public class Search extends AppCompatActivity {
     private DatabaseReference requestsRef;
     private String currentUid;
 
+    // Кастомный менеджер для предотвращения краша "Inconsistency detected"
+    private static class WrapContentLinearLayoutManager extends LinearLayoutManager {
+        public WrapContentLinearLayoutManager(Context context) {
+            super(context);
+        }
+        @Override
+        public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+            try {
+                super.onLayoutChildren(recycler, state);
+            } catch (IndexOutOfBoundsException e) {
+                Log.e("RecyclerView", "Inconsistency detected");
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,7 +53,7 @@ public class Search extends AppCompatActivity {
         currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         recyclerView = findViewById(R.id.rv_search_results);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setLayoutManager(new WrapContentLinearLayoutManager(this));
 
         android.widget.EditText etSearch = findViewById(R.id.et_search_input);
 
@@ -67,11 +84,15 @@ public class Search extends AppCompatActivity {
                         .setQuery(query, RequestModel.class)
                         .build();
 
+        if (adapter != null) {
+            adapter.stopListening();
+        }
+
         adapter = new FirebaseRecyclerAdapter<RequestModel, UserMain.RequestViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull UserMain.RequestViewHolder holder, int position, @NonNull RequestModel model) {
                 // Фильтруем, чтобы видеть только свои заявки (если Firebase не сделал этого)
-                if (!model.getUserId().equals(currentUid)) {
+                if (model.getUserId() == null || !model.getUserId().equals(currentUid)) {
                     holder.itemView.setVisibility(View.GONE);
                     holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
                     return;

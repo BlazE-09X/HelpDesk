@@ -1,19 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/nav_tasks"
-        android:icon="@drawable/tasks"
-        android:title="Заявки" />
+        android:id="@+id/nav_home"
+        android:icon="@drawable/home"
+        android:title="Статистика" />
     <item
         android:id="@+id/nav_users"
         android:icon="@drawable/users"
-        android:title="Пользователи" />
+        android:title="Жители" />
     <item
-        android:id="@+id/nav_home"
-        android:icon="@drawable/home"
-        android:title="Главная" />
+        android:id="@+id/nav_workers"
+        android:icon="@drawable/executor"
+        android:title="Исполнители" />
     <item
-        android:id="@+id/nav_profile"
-        android:icon="@drawable/profile"
-        android:title="Профиль" />
+        android:id="@+id/nav_tasks"
+        android:icon="@drawable/tasks"
+        android:title="Организации" />
+    <item
+        android:id="@+id/nav_housing"
+        android:icon="@drawable/home3"
+        android:title="ЖК" />
 </menu>

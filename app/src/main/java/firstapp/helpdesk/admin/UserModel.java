@@ -15,18 +15,14 @@ public class UserModel {
     private String phone;
     private String role;
     private String department;
+    private String companyId;
+    private String companyName;
+    private String specialization;
+    private String search_name; // Новое поле для поиска
 
-    // Пустой конструктор для Firebase
     public UserModel() {}
 
-    public UserModel(String id, String fullname, String email, String role) {
-        this.id = id;
-        this.fullname = fullname;
-        this.email = email;
-        this.role = role;
-    }
-
-    public String getId() { return id; }
+    public String getId() { return id != null ? id : uid; }
     public void setId(String id) { this.id = id; }
 
     public String getUid() { return uid; }
@@ -58,4 +54,16 @@ public class UserModel {
 
     public String getDepartment() { return department; }
     public void setDepartment(String department) { this.department = department; }
+
+    public String getCompanyId() { return companyId; }
+    public void setCompanyId(String companyId) { this.companyId = companyId; }
+
+    public String getCompanyName() { return companyName; }
+    public void setCompanyName(String companyName) { this.companyName = companyName; }
+
+    public String getSpecialization() { return specialization; }
+    public void setSpecialization(String specialization) { this.specialization = specialization; }
+
+    public String getSearch_name() { return search_name; }
+    public void setSearch_name(String search_name) { this.search_name = search_name; }
 }
