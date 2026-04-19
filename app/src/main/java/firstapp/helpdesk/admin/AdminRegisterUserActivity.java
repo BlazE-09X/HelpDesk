@@ -126,7 +126,6 @@ public class AdminRegisterUserActivity extends AppCompatActivity {
         String surname = etSurname.getText().toString().trim();
         String patronymic = etPatronymic.getText().toString().trim();
         
-        // Создаем поле для поиска (Фамилия Имя Отчество в нижнем регистре)
         String searchName = (surname + " " + name + " " + patronymic).toLowerCase();
 
         Map<String, Object> userData = new HashMap<>();
@@ -141,8 +140,11 @@ public class AdminRegisterUserActivity extends AppCompatActivity {
         userData.put("role", "user");
         userData.put("search_name", searchName);
 
-        mDatabase.child("users").child(uid).setValue(userData).addOnCompleteListener(task -> {
+        // Сохраняем в новую таблицу Residents
+        mDatabase.child("Residents").child(uid).setValue(userData).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
+                // Также дублируем в users для простого поиска при логине
+                mDatabase.child("users").child(uid).setValue(userData);
                 Toast.makeText(this, "Житель успешно зарегистрирован", Toast.LENGTH_SHORT).show();
                 finish();
             }

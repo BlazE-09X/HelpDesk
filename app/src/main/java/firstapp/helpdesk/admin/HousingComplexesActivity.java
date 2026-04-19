@@ -62,9 +62,18 @@ public class HousingComplexesActivity extends AppCompatActivity {
         adapter = new FirebaseRecyclerAdapter<HousingComplexModel, HousingViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull HousingViewHolder holder, int position, @NonNull HousingComplexModel model) {
+                String jkId = getRef(position).getKey();
                 holder.name.setText(model.getName());
                 holder.address.setText(model.getAddress());
                 
+                // Переход к управлению обслуживающими организациями
+                holder.itemView.setOnClickListener(v -> {
+                    Intent intent = new Intent(HousingComplexesActivity.this, AdminManageJKServicesActivity.class);
+                    intent.putExtra("jkId", jkId);
+                    intent.putExtra("jkName", model.getName());
+                    startActivity(intent);
+                });
+
                 holder.btnDelete.setOnClickListener(v -> {
                     int currentPos = holder.getBindingAdapterPosition();
                     if (currentPos != RecyclerView.NO_POSITION) {

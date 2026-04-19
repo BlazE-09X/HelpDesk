@@ -51,7 +51,8 @@ public class ExecutorProfile extends AppCompatActivity {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_executor);
         bottomNav.setSelectedItemId(R.id.nav_executor_profile);
         bottomNav.setOnItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.nav_executor_home) {
+            int id = item.getItemId();
+            if (id == R.id.nav_executor_home) {
                 startActivity(new Intent(this, ExecutorMain.class));
                 overridePendingTransition(0, 0);
                 finish();
@@ -64,24 +65,46 @@ public class ExecutorProfile extends AppCompatActivity {
     private void loadExecutorData() {
         String uid = FirebaseAuth.getInstance().getUid();
         if (uid == null) return;
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(uid);
+        
+        // Сначала ищем в новой таблице Workers
+        DatabaseReference workerRef = FirebaseDatabase.getInstance().getReference("Workers").child(uid);
 
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+        workerRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    String name = snapshot.child("name").getValue(String.class);
-                    String phone = snapshot.child("phone").getValue(String.class);
-                    String email = snapshot.child("email").getValue(String.class);
-
-                    tvName.setText(name);
-                    tvLogin.setText(name);
-                    tvPhone.setText(phone);
-                    tvEmail.setText(email);
+                    displayData(snapshot);
+                } else {
+                    // Если нет в Workers, ищем в общей таблице users
+                    FirebaseDatabase.getInstance().getReference("users").child(uid)
+                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snap) {
+                                    if (snap.exists()) displayData(snap);
+                                }
+                                @Override public void onCancelled(@NonNull DatabaseError error) {}
+                            });
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+    
+    private void displayData(DataSnapshot snapshot) {
+        String name = snapshot.child("name").getValue(String.class);
+        String surname = snapshot.child("surname").getValue(String.class);
+        String phone = snapshot.child("phone").getValue(String.class);
+        String email = snapshot.child("email").getValue(String.class);
+
+        // Формируем полное имя: Фамилия + Имя
+        String fullName = ((surname != null ? surname : "") + " " + (name != null ? name : "")).trim();
+        
+        if (fullName.isEmpty()) fullName = email; // Запасной вариант
+
+        tvName.setText(fullName);
+        tvLogin.setText(fullName);
+        tvPhone.setText(phone != null ? phone : "Не указан");
+        tvEmail.setText(email);
     }
 
     private void calculateAverageRating() {

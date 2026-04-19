@@ -51,19 +51,16 @@
         <activity android:name=".user.EditRequestActivity" android:exported="false" />
         <activity android:name=".user.HistoryLoginActivity" android:exported="false" />
         <activity android:name=".user.NewRequestActivity" android:exported="false" />
-
         <activity android:name=".user.Search" android:exported="false" />
+        <activity android:name=".user.UserOrganizationsActivity" android:exported="false" />
+        <activity android:name=".user.UserWorkersActivity" android:exported="false" />
 
         <activity android:name=".executor.WorkerMain" android:exported="false" />
-
-        <activity android:name=".tickets.CreateTicketActivity" android:exported="false" />
-
         <activity android:name=".executor.ExecutorMain" android:exported="false" />
         <activity android:name=".executor.ExecutorProfile" android:exported="false" />
         <activity android:name=".executor.ExecutorDetailActivity" android:exported="false" />
 
         <activity android:name=".chat.ChatActivity" android:exported="false" />
-
 
     </application>
 

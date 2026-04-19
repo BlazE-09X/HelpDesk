@@ -137,7 +137,6 @@ public class AdminRegisterWorker extends AppCompatActivity {
     }
 
     private void saveWorkerToDatabase(String uid, String email, String name, String surname, String spec, String companyId, String companyName) {
-        // Создаем поле для поиска
         String searchName = (surname + " " + name).toLowerCase();
 
         Map<String, Object> workerData = new HashMap<>();
@@ -151,9 +150,12 @@ public class AdminRegisterWorker extends AppCompatActivity {
         workerData.put("companyName", companyName);
         workerData.put("search_name", searchName);
 
-        mDatabase.child("users").child(uid).setValue(workerData)
+        // Сохраняем в новую таблицу Workers
+        mDatabase.child("Workers").child(uid).setValue(workerData)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        // Дублируем в users для логина
+                        mDatabase.child("users").child(uid).setValue(workerData);
                         mDatabase.child("Organizations").child(companyId).child("workers").child(uid).setValue(true);
                         Toast.makeText(this, "Исполнитель добавлен", Toast.LENGTH_SHORT).show();
                         finish();

@@ -34,7 +34,6 @@ public class AdminUsers extends AppCompatActivity {
     private RecyclerView recyclerView;
     private DatabaseReference mDatabase;
     private FirebaseRecyclerAdapter<UserModel, UserViewHolder> adapter;
-    private String currentAdminUid;
 
     private static class WrapContentLinearLayoutManager extends LinearLayoutManager {
         public WrapContentLinearLayoutManager(Context context) {
@@ -55,8 +54,8 @@ public class AdminUsers extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.admin_users);
 
-        mDatabase = FirebaseDatabase.getInstance().getReference("users");
-        currentAdminUid = FirebaseAuth.getInstance().getUid();
+        // Работаем с отдельной таблицей жителей
+        mDatabase = FirebaseDatabase.getInstance().getReference("Residents");
         
         recyclerView = findViewById(R.id.rv_admin_users);
         recyclerView.setLayoutManager(new WrapContentLinearLayoutManager(this));
@@ -73,8 +72,7 @@ public class AdminUsers extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
 
-        Query query = mDatabase.orderByChild("role").equalTo("user");
-        setupAdapter(query);
+        setupAdapter(mDatabase);
 
         findViewById(R.id.fab_add_user).setOnClickListener(v -> 
             startActivity(new Intent(AdminUsers.this, AdminRegisterUserActivity.class)));
@@ -94,31 +92,23 @@ public class AdminUsers extends AppCompatActivity {
         adapter = new FirebaseRecyclerAdapter<UserModel, UserViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull UserViewHolder holder, int position, @NonNull UserModel model) {
-                boolean isUser = "user".equalsIgnoreCase(model.getRole());
-                boolean isNotCurrentAdmin = model.getUid() == null || !model.getUid().equals(currentAdminUid);
+                String fullName = ((model.getSurname() != null ? model.getSurname() : "") + " " + 
+                                 (model.getName() != null ? model.getName() : "") + " " + 
+                                 (model.getPatronymic() != null ? model.getPatronymic() : "")).trim();
+                
+                holder.name.setText(fullName.isEmpty() ? model.getEmail() : fullName);
+                holder.info.setText("ЖК: " + (model.getCompanyName() != null ? model.getCompanyName() : "Не указан"));
 
-                if (isUser && isNotCurrentAdmin) {
-                    holder.itemView.setVisibility(View.VISIBLE);
-                    holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-                    
-                    String fullName = ((model.getSurname() != null ? model.getSurname() : "") + " " + 
-                                     (model.getName() != null ? model.getName() : "") + " " + 
-                                     (model.getPatronymic() != null ? model.getPatronymic() : "")).trim();
-                    
-                    holder.name.setText(fullName.isEmpty() ? model.getEmail() : fullName);
-                    holder.info.setText("ЖК: " + (model.getCompanyName() != null ? model.getCompanyName() : "Не указан"));
-
-                    holder.btnDelete.setOnClickListener(v -> {
-                        int currentPos = holder.getBindingAdapterPosition();
-                        if (currentPos != RecyclerView.NO_POSITION) {
-                            getRef(currentPos).removeValue().addOnSuccessListener(aVoid -> 
-                                Toast.makeText(AdminUsers.this, "Житель удален", Toast.LENGTH_SHORT).show());
-                        }
-                    });
-                } else {
-                    holder.itemView.setVisibility(View.GONE);
-                    holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
-                }
+                holder.btnDelete.setOnClickListener(v -> {
+                    int currentPos = holder.getBindingAdapterPosition();
+                    if (currentPos != RecyclerView.NO_POSITION) {
+                        String uid = getRef(currentPos).getKey();
+                        getRef(currentPos).removeValue().addOnSuccessListener(aVoid -> {
+                            FirebaseDatabase.getInstance().getReference("users").child(uid).removeValue();
+                            Toast.makeText(AdminUsers.this, "Житель удален", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
             }
 
             @NonNull
@@ -133,15 +123,14 @@ public class AdminUsers extends AppCompatActivity {
     }
 
     private void searchUsers(String text) {
-        Query query;
         if (text.isEmpty()) {
-            query = mDatabase.orderByChild("role").equalTo("user");
+            setupAdapter(mDatabase);
         } else {
-            // Ищем по новому полю search_name
+            // Поиск по ФИО (начиная с фамилии)
             String searchText = text.toLowerCase();
-            query = mDatabase.orderByChild("search_name").startAt(searchText).endAt(searchText + "\uf8ff");
+            Query query = mDatabase.orderByChild("search_name").startAt(searchText).endAt(searchText + "\uf8ff");
+            setupAdapter(query);
         }
-        setupAdapter(query);
     }
 
     private void setupNavigation() {
