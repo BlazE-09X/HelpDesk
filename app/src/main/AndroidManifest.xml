@@ -36,11 +36,13 @@
         <activity android:name=".admin.CreateCompany" android:exported="false" />
         <activity android:name=".admin.AdminChangeEmail" android:exported="false"/>
         <activity android:name=".admin.AdminChangePassword" android:exported="false"/>
-        <activity android:name=".admin.AdminRegisterWorker" />
+        <activity android:name=".admin.AdminRegisterWorker" android:exported="false" />
         <activity android:name=".admin.AdminReportsActivity" android:exported="false" />
-        <activity android:name=".admin.AdminWorkersActivity" />
+        <activity android:name=".admin.AdminWorkersActivity" android:exported="false" />
         <activity android:name=".admin.HousingComplexesActivity" android:exported="false" />
         <activity android:name=".admin.AdminCreateHousingActivity" android:exported="false" />
+        <activity android:name=".admin.AdminManageJKServicesActivity" android:exported="false" />
+        <activity android:name=".admin.CompanyMainActivity" android:exported="false" />
 
         <activity android:name=".user.UserMain" android:exported="false" />
         <activity android:name=".user.UserProfile" android:exported="false" />
@@ -51,6 +53,7 @@
         <activity android:name=".user.EditRequestActivity" android:exported="false" />
         <activity android:name=".user.HistoryLoginActivity" android:exported="false" />
         <activity android:name=".user.NewRequestActivity" android:exported="false" />
+        <activity android:name=".user.NewRequest" android:exported="false" />
         <activity android:name=".user.Search" android:exported="false" />
         <activity android:name=".user.UserOrganizationsActivity" android:exported="false" />
         <activity android:name=".user.UserWorkersActivity" android:exported="false" />
@@ -61,6 +64,7 @@
         <activity android:name=".executor.ExecutorDetailActivity" android:exported="false" />
 
         <activity android:name=".chat.ChatActivity" android:exported="false" />
+        <activity android:name=".tickets.CreateTicketActivity" android:exported="false" />
 
     </application>
 

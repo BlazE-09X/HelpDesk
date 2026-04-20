@@ -23,8 +23,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -37,24 +40,19 @@ public class ChatActivity extends AppCompatActivity {
     private static final String TAG = "CHAT";
     private String requestId;
     private String currentUserId;
-    private DatabaseReference chatRef;
+    private DatabaseReference chatRef, requestRef;
     private RecyclerView recyclerView;
     private EditText etMessage;
     private ImageButton btnSend;
+    private LinearLayout llInputArea;
+    private TextView tvChatClosed;
     private FirebaseRecyclerAdapter<MessageModel, MessageViewHolder> adapter;
 
-    // Кастомный менеджер для предотвращения краша "Inconsistency detected"
     private static class WrapContentLinearLayoutManager extends LinearLayoutManager {
-        public WrapContentLinearLayoutManager(Context context) {
-            super(context);
-        }
+        public WrapContentLinearLayoutManager(Context context) { super(context); }
         @Override
         public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-            try {
-                super.onLayoutChildren(recycler, state);
-            } catch (IndexOutOfBoundsException e) {
-                Log.e("RecyclerView", "Inconsistency detected");
-            }
+            try { super.onLayoutChildren(recycler, state); } catch (IndexOutOfBoundsException e) { Log.e("RecyclerView", "Inconsistency detected"); }
         }
     }
 
@@ -64,45 +62,54 @@ public class ChatActivity extends AppCompatActivity {
         setContentView(R.layout.activity_chat);
 
         requestId = getIntent().getStringExtra("requestId");
-        Log.d(TAG, "chat_opened: requestId=" + requestId);
-        
-        if (requestId == null) {
-            Log.e(TAG, "error: requestId_is_null");
-            finish();
-            return;
-        }
+        if (requestId == null) { finish(); return; }
 
         currentUserId = FirebaseAuth.getInstance().getUid();
         chatRef = FirebaseDatabase.getInstance().getReference("Chats").child(requestId).child("messages");
+        requestRef = FirebaseDatabase.getInstance().getReference("Requests").child(requestId);
 
         recyclerView = findViewById(R.id.rv_chat_messages);
         etMessage = findViewById(R.id.et_chat_message);
         btnSend = findViewById(R.id.btn_chat_send);
-        TextView tvBack = findViewById(R.id.tv_chat_back);
+        llInputArea = findViewById(R.id.ll_chat_input_area); // Нужно убедиться что такой ID есть в activity_chat.xml
+        tvChatClosed = findViewById(R.id.tv_chat_closed);   // Или создать его программно/в XML
 
         recyclerView.setLayoutManager(new WrapContentLinearLayoutManager(this));
         
         setupAdapter();
+        checkRequestStatus();
 
         btnSend.setOnClickListener(v -> sendMessage());
-        tvBack.setOnClickListener(v -> finish());
+        findViewById(R.id.tv_chat_back).setOnClickListener(v -> finish());
+    }
+
+    private void checkRequestStatus() {
+        requestRef.child("status").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String status = snapshot.getValue(String.class);
+                if ("Выполнено".equalsIgnoreCase(status)) {
+                    if (llInputArea != null) llInputArea.setVisibility(View.GONE);
+                    if (tvChatClosed != null) {
+                        tvChatClosed.setVisibility(View.VISIBLE);
+                        tvChatClosed.setText("Заявка выполнена. Чат закрыт.");
+                    }
+                    etMessage.setEnabled(false);
+                    btnSend.setEnabled(false);
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void setupAdapter() {
-        FirebaseRecyclerOptions<MessageModel> options =
-                new FirebaseRecyclerOptions.Builder<MessageModel>()
-                        .setQuery(chatRef, MessageModel.class)
-                        .build();
-
-        if (adapter != null) {
-            adapter.stopListening();
-        }
+        FirebaseRecyclerOptions<MessageModel> options = new FirebaseRecyclerOptions.Builder<MessageModel>()
+                        .setQuery(chatRef, MessageModel.class).build();
 
         adapter = new FirebaseRecyclerAdapter<MessageModel, MessageViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull MessageViewHolder holder, int position, @NonNull MessageModel model) {
                 holder.text.setText(model.getText());
-                
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
                 holder.time.setText(sdf.format(new Date(model.getTimestamp())));
 
@@ -118,7 +125,6 @@ public class ChatActivity extends AppCompatActivity {
                 }
                 holder.container.setLayoutParams(params);
             }
-
             @NonNull
             @Override
             public MessageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -126,7 +132,6 @@ public class ChatActivity extends AppCompatActivity {
                 return new MessageViewHolder(view);
             }
         };
-
         recyclerView.setAdapter(adapter);
         adapter.startListening();
     }
@@ -134,42 +139,22 @@ public class ChatActivity extends AppCompatActivity {
     private void sendMessage() {
         String text = etMessage.getText().toString().trim();
         if (TextUtils.isEmpty(text)) return;
-
         String msgId = chatRef.push().getKey();
-        if (msgId == null) {
-            Log.e(TAG, "error: msg_id_gen_failed");
-            return;
-        }
+        if (msgId == null) return;
 
-        Log.d(TAG, "send_message: requestId=" + requestId + ", senderId=" + currentUserId);
         MessageModel message = new MessageModel(currentUserId, "receiver", text, System.currentTimeMillis());
         chatRef.child(msgId).setValue(message).addOnSuccessListener(aVoid -> {
-            Log.d(TAG, "send_success: msgId=" + msgId);
             etMessage.setText("");
-            if (adapter != null && adapter.getItemCount() > 0) {
-                recyclerView.smoothScrollToPosition(adapter.getItemCount() - 1);
-            }
-        }).addOnFailureListener(e -> {
-            Log.e(TAG, "send_failed: " + e.getMessage());
+            recyclerView.smoothScrollToPosition(adapter.getItemCount());
         });
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (adapter != null) adapter.startListening();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (adapter != null) adapter.stopListening();
-    }
+    @Override protected void onStart() { super.onStart(); if (adapter != null) adapter.startListening(); }
+    @Override protected void onStop() { super.onStop(); if (adapter != null) adapter.stopListening(); }
 
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         TextView text, time;
         LinearLayout container;
-
         public MessageViewHolder(@NonNull View itemView) {
             super(itemView);
             text = itemView.findViewById(R.id.tv_message_text);

@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -30,6 +31,7 @@ public class Login extends AppCompatActivity {
     private Button btnLogin;
     private ProgressBar progressBar;
     private SharedPreferences sharedPreferences;
+    private TextView tvForgotPassword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +54,7 @@ public class Login extends AppCompatActivity {
         etPassword = findViewById(R.id.password);
         btnLogin = findViewById(R.id.button);
         progressBar = findViewById(R.id.progressBar);
+        tvForgotPassword = findViewById(R.id.textView3);
 
         btnLogin.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
@@ -62,23 +65,44 @@ public class Login extends AppCompatActivity {
                 return;
             }
 
-            Log.d(TAG, "login_attempt: email=" + email);
-            if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
-            btnLogin.setEnabled(false);
+            signIn(email, password);
+        });
 
-            mAuth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this, task -> {
+        tvForgotPassword.setOnClickListener(v -> {
+            String email = etEmail.getText().toString().trim();
+            if (email.isEmpty()) {
+                Toast.makeText(this, "Введите ваш email в поле выше, чтобы сбросить пароль", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            mAuth.sendPasswordResetEmail(email)
+                    .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            Log.d(TAG, "login_success: userId=" + mAuth.getCurrentUser().getUid());
-                            fetchUserRoleAndRedirect();
+                            Toast.makeText(this, "Письмо для сброса пароля отправлено на " + email, Toast.LENGTH_LONG).show();
                         } else {
-                            if (progressBar != null) progressBar.setVisibility(View.GONE);
-                            btnLogin.setEnabled(true);
-                            Log.e(TAG, "login_error: " + (task.getException() != null ? task.getException().getMessage() : "unknown"));
-                            Toast.makeText(this, "Ошибка входа: проверьте данные", Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Ошибка: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
         });
+    }
+
+    private void signIn(String email, String password) {
+        Log.d(TAG, "login_attempt: email=" + email);
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+        btnLogin.setEnabled(false);
+
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "login_success: userId=" + mAuth.getCurrentUser().getUid());
+                        fetchUserRoleAndRedirect();
+                    } else {
+                        if (progressBar != null) progressBar.setVisibility(View.GONE);
+                        btnLogin.setEnabled(true);
+                        Log.e(TAG, "login_error: " + (task.getException() != null ? task.getException().getMessage() : "unknown"));
+                        Toast.makeText(this, "Ошибка входа: проверьте данные или сбросьте пароль", Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     private void fetchUserRoleAndRedirect() {

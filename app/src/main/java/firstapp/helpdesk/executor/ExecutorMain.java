@@ -108,7 +108,7 @@ public class ExecutorMain extends AppCompatActivity {
         adapter = new FirebaseRecyclerAdapter<RequestModel, UserMain.RequestViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull UserMain.RequestViewHolder holder, int position, @NonNull RequestModel model) {
-                holder.setRealNumber(position);
+                holder.number.setText(String.format("#%03d", position + 1));
                 holder.title.setText("Тема: " + model.getTitle());
 
                 int color;

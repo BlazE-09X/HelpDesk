@@ -29,18 +29,11 @@ public class Search extends AppCompatActivity {
     private DatabaseReference requestsRef;
     private String currentUid;
 
-    // Кастомный менеджер для предотвращения краша "Inconsistency detected"
     private static class WrapContentLinearLayoutManager extends LinearLayoutManager {
-        public WrapContentLinearLayoutManager(Context context) {
-            super(context);
-        }
+        public WrapContentLinearLayoutManager(Context context) { super(context); }
         @Override
         public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-            try {
-                super.onLayoutChildren(recycler, state);
-            } catch (IndexOutOfBoundsException e) {
-                Log.e("RecyclerView", "Inconsistency detected");
-            }
+            try { super.onLayoutChildren(recycler, state); } catch (IndexOutOfBoundsException e) { Log.e("RecyclerView", "Inconsistency detected"); }
         }
     }
 
@@ -57,11 +50,10 @@ public class Search extends AppCompatActivity {
 
         android.widget.EditText etSearch = findViewById(R.id.et_search_input);
 
-        // Слушатель изменения текста для мгновенного поиска
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                startSearch(s.toString());
+                startSearch(s.toString().trim());
             }
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -70,44 +62,57 @@ public class Search extends AppCompatActivity {
         });
 
         setupBottomNavigation();
-        startSearch(""); // По умолчанию показываем все
+        startSearch(""); 
     }
 
     private void startSearch(String searchText) {
-        // Запрос: ищем по заголовку (title) среди заявок пользователя
-        Query query = requestsRef.orderByChild("title")
-                .startAt(searchText)
-                .endAt(searchText + "\uf8ff");
+        // Firebase не поддерживает поиск case-insensitive напрямую через Query, 
+        // поэтому обычно данные сохраняют в нижнем регистре (title_lowercase).
+        // В данном случае применим фильтрацию на клиенте или поиск по префиксу.
+        
+        Query query = requestsRef.orderByChild("userId").equalTo(currentUid);
 
-        FirebaseRecyclerOptions<RequestModel> options =
-                new FirebaseRecyclerOptions.Builder<RequestModel>()
+        FirebaseRecyclerOptions<RequestModel> options = new FirebaseRecyclerOptions.Builder<RequestModel>()
                         .setQuery(query, RequestModel.class)
                         .build();
 
-        if (adapter != null) {
-            adapter.stopListening();
-        }
+        if (adapter != null) adapter.stopListening();
 
         adapter = new FirebaseRecyclerAdapter<RequestModel, UserMain.RequestViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull UserMain.RequestViewHolder holder, int position, @NonNull RequestModel model) {
-                // Фильтруем, чтобы видеть только свои заявки (если Firebase не сделал этого)
-                if (model.getUserId() == null || !model.getUserId().equals(currentUid)) {
+                // Ручная фильтрация по тексту (регистронезависимая)
+                String title = model.getTitle() != null ? model.getTitle().toLowerCase() : "";
+                if (!searchText.isEmpty() && !title.contains(searchText.toLowerCase())) {
                     holder.itemView.setVisibility(View.GONE);
                     holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
                     return;
                 }
 
                 holder.itemView.setVisibility(View.VISIBLE);
-                holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
                 holder.number.setText("#" + String.format("%03d", position + 1));
                 holder.title.setText(model.getTitle());
+                
+                String status = model.getStatus() != null ? model.getStatus() : "Новая";
+                holder.statusText.setText(status);
 
-                // Установка цвета в зависимости от статуса
-                int color = getStatusColor(model.getStatus());
+                int color;
+                switch (status) {
+                    case "Выполнено": color = 0xFF32CD32; break;
+                    case "Отклонено": color = 0xFFFF0000; break;
+                    case "В работе": color = 0xFFFFA500; break;
+                    default: color = 0xFF00BFFF; break;
+                }
                 holder.statusColor.setBackgroundColor(color);
+                holder.statusText.setTextColor(color);
+                
+                holder.itemView.setOnClickListener(v -> {
+                    Intent intent = new Intent(Search.this, EditRequestActivity.class);
+                    intent.putExtra("requestId", getRef(holder.getBindingAdapterPosition()).getKey());
+                    startActivity(intent);
+                });
             }
 
             @NonNull
@@ -122,34 +127,14 @@ public class Search extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
-    private int getStatusColor(String status) {
-        if (status == null) return 0xFF00BFFF;
-        switch (status) {
-            case "Выполнено": return 0xFF32CD32; // Зеленый
-            case "Отклонено": return 0xFFFF0000; // Красный
-            case "В работе": return 0xFFFFA500;  // Оранжевый
-            default: return 0xFF00BFFF;          // Голубой
-        }
-    }
-
     private void setupBottomNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_user);
         bottomNav.setSelectedItemId(R.id.nav_search);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_home) {
-                startActivity(new Intent(this, UserMain.class));
-                finish();
-                return true;
-            } else if (id == R.id.nav_add) {
-                startActivity(new Intent(this, CreateSelectionActivity.class));
-                finish();
-                return true;
-            } else if (id == R.id.nav_profile) {
-                startActivity(new Intent(this, UserProfile.class));
-                finish();
-                return true;
-            }
+            if (id == R.id.nav_home) { startActivity(new Intent(this, UserMain.class)); finish(); return true; }
+            if (id == R.id.nav_add) { startActivity(new Intent(this, CreateSelectionActivity.class)); finish(); return true; }
+            if (id == R.id.nav_profile) { startActivity(new Intent(this, UserProfile.class)); finish(); return true; }
             return id == R.id.nav_search;
         });
     }
