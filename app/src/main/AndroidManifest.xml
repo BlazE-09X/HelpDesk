@@ -43,6 +43,8 @@
         <activity android:name=".admin.AdminCreateHousingActivity" android:exported="false" />
         <activity android:name=".admin.AdminManageJKServicesActivity" android:exported="false" />
         <activity android:name=".admin.CompanyMainActivity" android:exported="false" />
+        <activity android:name=".admin.AdminCategoriesActivity" android:exported="false" />
+        <activity android:name=".admin.AdminPhotoActivity" android:exported="false" />
 
         <activity android:name=".user.UserMain" android:exported="false" />
         <activity android:name=".user.UserProfile" android:exported="false" />

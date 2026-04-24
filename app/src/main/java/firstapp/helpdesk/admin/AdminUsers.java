@@ -9,8 +9,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,10 +25,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import firstapp.helpdesk.R;
 
@@ -34,6 +42,9 @@ public class AdminUsers extends AppCompatActivity {
     private RecyclerView recyclerView;
     private DatabaseReference mDatabase;
     private FirebaseRecyclerAdapter<UserModel, UserViewHolder> adapter;
+    private Spinner spinnerJK;
+    private List<String> jkList = new ArrayList<>();
+    private String selectedJK = "Все ЖК";
 
     private static class WrapContentLinearLayoutManager extends LinearLayoutManager {
         public WrapContentLinearLayoutManager(Context context) {
@@ -54,11 +65,13 @@ public class AdminUsers extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.admin_users);
 
-        // Работаем с отдельной таблицей жителей
         mDatabase = FirebaseDatabase.getInstance().getReference("Residents");
         
         recyclerView = findViewById(R.id.rv_admin_users);
         recyclerView.setLayoutManager(new WrapContentLinearLayoutManager(this));
+
+        spinnerJK = findViewById(R.id.spinner_filter_jk);
+        loadJKList();
 
         EditText etSearch = findViewById(R.id.et_search_users);
         etSearch.addTextChangedListener(new TextWatcher() {
@@ -66,7 +79,7 @@ public class AdminUsers extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                searchUsers(s.toString().trim());
+                applyFilters(s.toString().trim());
             }
             @Override
             public void afterTextChanged(Editable s) {}
@@ -78,6 +91,44 @@ public class AdminUsers extends AppCompatActivity {
             startActivity(new Intent(AdminUsers.this, AdminRegisterUserActivity.class)));
 
         setupNavigation();
+    }
+
+    private void loadJKList() {
+        jkList.clear();
+        jkList.add("Все ЖК");
+        FirebaseDatabase.getInstance().getReference("HousingComplexes").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String name = ds.child("name").getValue(String.class);
+                    if (name != null) jkList.add(name);
+                }
+                ArrayAdapter<String> adapterJK = new ArrayAdapter<>(AdminUsers.this, android.R.layout.simple_spinner_item, jkList);
+                adapterJK.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerJK.setAdapter(adapterJK);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        spinnerJK.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedJK = jkList.get(position);
+                applyFilters(((EditText)findViewById(R.id.et_search_users)).getText().toString().trim());
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    private void applyFilters(String searchText) {
+        Query query = mDatabase;
+        if (!selectedJK.equals("Все ЖК")) {
+            query = mDatabase.orderByChild("companyName").equalTo(selectedJK);
+        } else if (!searchText.isEmpty()) {
+            String text = searchText.toLowerCase();
+            query = mDatabase.orderByChild("search_name").startAt(text).endAt(text + "\uf8ff");
+        }
+        setupAdapter(query);
     }
 
     private void setupAdapter(Query query) {
@@ -92,6 +143,22 @@ public class AdminUsers extends AppCompatActivity {
         adapter = new FirebaseRecyclerAdapter<UserModel, UserViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull UserViewHolder holder, int position, @NonNull UserModel model) {
+                // Если выбран фильтр по ЖК, но в поиске что-то есть, фильтруем локально (Firebase не поддерживает кратные фильтры)
+                String searchText = ((EditText)findViewById(R.id.et_search_users)).getText().toString().trim().toLowerCase();
+                if (!searchText.isEmpty() && !selectedJK.equals("Все ЖК")) {
+                    String fullName = ((model.getSurname() != null ? model.getSurname() : "") + " " + 
+                                     (model.getName() != null ? model.getName() : "") + " " + 
+                                     (model.getPatronymic() != null ? model.getPatronymic() : "")).toLowerCase();
+                    if (!fullName.contains(searchText) && !model.getEmail().toLowerCase().contains(searchText)) {
+                        holder.itemView.setVisibility(View.GONE);
+                        holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
+                        return;
+                    }
+                }
+                
+                holder.itemView.setVisibility(View.VISIBLE);
+                holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
                 String fullName = ((model.getSurname() != null ? model.getSurname() : "") + " " + 
                                  (model.getName() != null ? model.getName() : "") + " " + 
                                  (model.getPatronymic() != null ? model.getPatronymic() : "")).trim();
@@ -120,17 +187,6 @@ public class AdminUsers extends AppCompatActivity {
         };
         recyclerView.setAdapter(adapter);
         adapter.startListening();
-    }
-
-    private void searchUsers(String text) {
-        if (text.isEmpty()) {
-            setupAdapter(mDatabase);
-        } else {
-            // Поиск по ФИО (начиная с фамилии)
-            String searchText = text.toLowerCase();
-            Query query = mDatabase.orderByChild("search_name").startAt(searchText).endAt(searchText + "\uf8ff");
-            setupAdapter(query);
-        }
     }
 
     private void setupNavigation() {

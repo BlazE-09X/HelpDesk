@@ -9,8 +9,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,9 +25,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import firstapp.helpdesk.R;
 
@@ -33,6 +42,9 @@ public class AdminWorkersActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private DatabaseReference mDatabase;
     private FirebaseRecyclerAdapter<UserModel, WorkerViewHolder> adapter;
+    private Spinner spinnerOrg;
+    private List<String> orgList = new ArrayList<>();
+    private String selectedOrg = "Все организации";
 
     private static class WrapContentLinearLayoutManager extends LinearLayoutManager {
         public WrapContentLinearLayoutManager(Context context) {
@@ -57,13 +69,16 @@ public class AdminWorkersActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.rv_admin_workers);
         recyclerView.setLayoutManager(new WrapContentLinearLayoutManager(this));
 
+        spinnerOrg = findViewById(R.id.spinner_filter_org);
+        loadOrgList();
+
         EditText etSearch = findViewById(R.id.et_search_workers);
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                searchWorkers(s.toString().trim());
+                applyFilters(s.toString().trim());
             }
             @Override
             public void afterTextChanged(Editable s) {}
@@ -85,6 +100,44 @@ public class AdminWorkersActivity extends AppCompatActivity {
         findViewById(R.id.fab_add_worker_new).setOnClickListener(v -> startActivity(new Intent(this, AdminRegisterWorker.class)));
     }
 
+    private void loadOrgList() {
+        orgList.clear();
+        orgList.add("Все организации");
+        FirebaseDatabase.getInstance().getReference("Organizations").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String name = ds.child("name").getValue(String.class);
+                    if (name != null) orgList.add(name);
+                }
+                ArrayAdapter<String> adapterOrg = new ArrayAdapter<>(AdminWorkersActivity.this, android.R.layout.simple_spinner_item, orgList);
+                adapterOrg.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerOrg.setAdapter(adapterOrg);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        spinnerOrg.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedOrg = orgList.get(position);
+                applyFilters(((EditText)findViewById(R.id.et_search_workers)).getText().toString().trim());
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    private void applyFilters(String searchText) {
+        Query query = mDatabase;
+        if (!selectedOrg.equals("Все организации")) {
+            query = mDatabase.orderByChild("companyName").equalTo(selectedOrg);
+        } else if (!searchText.isEmpty()) {
+            String text = searchText.toLowerCase();
+            query = mDatabase.orderByChild("search_name").startAt(text).endAt(text + "\uf8ff");
+        }
+        setupAdapter(query);
+    }
+
     private void setupAdapter(Query query) {
         FirebaseRecyclerOptions<UserModel> options = new FirebaseRecyclerOptions.Builder<UserModel>()
                 .setQuery(query, UserModel.class).build();
@@ -96,16 +149,27 @@ public class AdminWorkersActivity extends AppCompatActivity {
         adapter = new FirebaseRecyclerAdapter<UserModel, WorkerViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull WorkerViewHolder holder, int position, @NonNull UserModel model) {
+                String searchText = ((EditText)findViewById(R.id.et_search_workers)).getText().toString().trim().toLowerCase();
+                if (!searchText.isEmpty() && !selectedOrg.equals("Все организации")) {
+                    String fullName = ((model.getSurname() != null ? model.getSurname() : "") + " " + 
+                                     (model.getName() != null ? model.getName() : "") + " " +
+                                     (model.getPatronymic() != null ? model.getPatronymic() : "")).toLowerCase();
+                    if (!fullName.contains(searchText) && !model.getEmail().toLowerCase().contains(searchText)) {
+                        holder.itemView.setVisibility(View.GONE);
+                        holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
+                        return;
+                    }
+                }
+
                 holder.itemView.setVisibility(View.VISIBLE);
                 holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                 
-                // Исправлено: добавляем Отчество в строку полного имени
                 String fullName = ((model.getSurname() != null ? model.getSurname() : "") + " " + 
                                  (model.getName() != null ? model.getName() : "") + " " +
                                  (model.getPatronymic() != null ? model.getPatronymic() : "")).trim();
                 
                 holder.name.setText(fullName.isEmpty() ? model.getEmail() : fullName);
-                holder.info.setText("Спец.: " + (model.getSpecialization() != null ? model.getSpecialization() : "Не указана"));
+                holder.info.setText("Орг.: " + (model.getCompanyName() != null ? model.getCompanyName() : "Не указана"));
                 
                 holder.btnDelete.setOnClickListener(v -> {
                     int currentPos = holder.getBindingAdapterPosition();
@@ -127,16 +191,6 @@ public class AdminWorkersActivity extends AppCompatActivity {
         };
         recyclerView.setAdapter(adapter);
         adapter.startListening();
-    }
-
-    private void searchWorkers(String text) {
-        if (text.isEmpty()) {
-            setupAdapter(mDatabase);
-        } else {
-            String searchText = text.toLowerCase();
-            Query query = mDatabase.orderByChild("search_name").startAt(searchText).endAt(searchText + "\uf8ff");
-            setupAdapter(query);
-        }
     }
 
     public static class WorkerViewHolder extends RecyclerView.ViewHolder {

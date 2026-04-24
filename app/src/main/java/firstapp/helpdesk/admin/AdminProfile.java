@@ -3,12 +3,14 @@ package firstapp.helpdesk.admin;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -24,7 +26,8 @@ import firstapp.helpdesk.R;
 public class AdminProfile extends AppCompatActivity {
 
     private TextView tvFullName, tvLogin, tvPhone, tvEmail;
-    private Button btnChangeEmail, btnChangePassword, btnLogout;
+    private Button btnChangeEmail, btnChangePassword, btnLogout, btnManageCategories;
+    private ImageView ivAvatar;
     private BottomNavigationView bottomNavigationView;
 
     private FirebaseAuth mAuth;
@@ -42,17 +45,22 @@ public class AdminProfile extends AppCompatActivity {
             mDatabase = FirebaseDatabase.getInstance().getReference("users").child(currentUser.getUid());
         }
 
+        ivAvatar = findViewById(R.id.iv_avatar);
         tvFullName = findViewById(R.id.tv_admin_full_name);
         tvLogin = findViewById(R.id.tv_profile_login);
         tvPhone = findViewById(R.id.tv_profile_phone);
         tvEmail = findViewById(R.id.tv_profile_email);
 
+        btnManageCategories = findViewById(R.id.btn_manage_categories);
         btnChangeEmail = findViewById(R.id.btn_change_email);
         btnChangePassword = findViewById(R.id.btn_change_password);
         btnLogout = findViewById(R.id.btn_logout);
         bottomNavigationView = findViewById(R.id.bottom_navigation_profile);
 
         loadAdminData();
+
+        ivAvatar.setOnClickListener(v -> startActivity(new Intent(this, AdminPhotoActivity.class)));
+        btnManageCategories.setOnClickListener(v -> startActivity(new Intent(this, AdminCategoriesActivity.class)));
 
         btnLogout.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
@@ -74,19 +82,17 @@ public class AdminProfile extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    // Используем String.valueOf() для безопасного получения данных, если они в БД сохранены как Long
-                    
-                    Object roleObj = snapshot.child("role").getValue();
-                    tvFullName.setText(roleObj != null ? String.valueOf(roleObj) : "Администратор");
+                    String role = snapshot.child("role").getValue(String.class);
+                    tvFullName.setText(role != null ? role : "Администратор");
 
-                    Object loginObj = snapshot.child("login").getValue();
-                    tvLogin.setText(loginObj != null ? String.valueOf(loginObj) : "Не указан");
+                    tvLogin.setText(String.valueOf(snapshot.child("login").getValue() != null ? snapshot.child("login").getValue() : "Не указан"));
+                    tvEmail.setText(String.valueOf(snapshot.child("email").getValue() != null ? snapshot.child("email").getValue() : "Не указана"));
+                    tvPhone.setText(String.valueOf(snapshot.child("phone").getValue() != null ? snapshot.child("phone").getValue() : "Не указан"));
 
-                    Object emailObj = snapshot.child("email").getValue();
-                    tvEmail.setText(emailObj != null ? String.valueOf(emailObj) : "Не указана");
-                    
-                    Object phoneObj = snapshot.child("phone").getValue();
-                    tvPhone.setText(phoneObj != null ? String.valueOf(phoneObj) : "Не указан");
+                    String photoUrl = snapshot.child("profileImage").getValue(String.class);
+                    if (photoUrl != null && !isFinishing()) {
+                        Glide.with(AdminProfile.this).load(photoUrl).placeholder(R.drawable.profile).circleCrop().into(ivAvatar);
+                    }
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}

@@ -7,8 +7,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +23,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
 import firstapp.helpdesk.R;
 import firstapp.helpdesk.user.RequestModel;
 
@@ -34,6 +38,7 @@ public class AdminMain extends AppCompatActivity {
     private DatabaseReference mDatabase;
     private RecyclerView recyclerView;
     private FirebaseRecyclerAdapter<RequestModel, RequestViewHolder> adapter;
+    private Map<String, String> userJKMap = new HashMap<>();
 
     private static class WrapContentLinearLayoutManager extends LinearLayoutManager {
         public WrapContentLinearLayoutManager(Context context) { super(context); }
@@ -64,14 +69,27 @@ public class AdminMain extends AppCompatActivity {
         layoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(layoutManager);
 
-        setupAdapter();
+        preloadUserJKData();
         loadStatistics();
         setupNavigation();
     }
 
+    private void preloadUserJKData() {
+        FirebaseDatabase.getInstance().getReference("Residents").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String jkId = ds.child("companyId").getValue(String.class);
+                    if (jkId != null) userJKMap.put(ds.getKey(), jkId);
+                }
+                setupAdapter(); // Вызываем после загрузки карты пользователей
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
     private void setupAdapter() {
-        // Берем 5 последних заявок
-        Query query = mDatabase.limitToLast(5);
+        Query query = mDatabase.limitToLast(10); // Берем чуть больше, чтобы последние 5 были актуальны
         
         FirebaseRecyclerOptions<RequestModel> options = new FirebaseRecyclerOptions.Builder<RequestModel>()
                 .setQuery(query, RequestModel.class).build();
@@ -79,10 +97,17 @@ public class AdminMain extends AppCompatActivity {
         adapter = new FirebaseRecyclerAdapter<RequestModel, RequestViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull RequestViewHolder holder, int position, @NonNull RequestModel model) {
-                holder.id.setText("#" + String.format("%03d", position + 1));
+                String jkId = userJKMap.get(model.getUserId());
+                if (jkId == null) jkId = "default";
+
+                // Логика нумерации по ЖК
+                calculateJKNumber(model, jkId, holder.id);
+
                 holder.title.setText("Тема: " + model.getTitle());
                 
                 String status = model.getStatus() != null ? model.getStatus() : "Новая";
+                holder.statusText.setText(status);
+                
                 int color;
                 switch (status) {
                     case "Выполнено": color = 0xFF27AE60; break;
@@ -91,6 +116,25 @@ public class AdminMain extends AppCompatActivity {
                     default: color = 0xFF56CCF2; break;
                 }
                 holder.statusView.setBackgroundColor(color);
+                holder.statusText.setTextColor(color);
+
+                SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
+                holder.date.setText("Дата: " + sdf.format(new Date(model.getTimestamp())));
+
+                if ("immediate".equals(model.getExecutionType())) {
+                    holder.deadline.setText("Дедлайн: Немедленно");
+                } else if (model.getDeadlineDate() > 0) {
+                    holder.deadline.setText("Дедлайн: " + sdf.format(new Date(model.getDeadlineDate())));
+                } else {
+                    holder.deadline.setText("Дедлайн: Не указан");
+                }
+
+                holder.itemView.setOnClickListener(v -> {
+                    Intent intent = new Intent(AdminMain.this, AdminRequestDetailActivity.class);
+                    intent.putExtra("requestId", getRef(holder.getBindingAdapterPosition()).getKey());
+                    intent.putExtra("formattedNum", holder.id.getText().toString());
+                    startActivity(intent);
+                });
             }
 
             @NonNull
@@ -101,6 +145,26 @@ public class AdminMain extends AppCompatActivity {
             }
         };
         recyclerView.setAdapter(adapter);
+        adapter.startListening();
+    }
+
+    private void calculateJKNumber(RequestModel model, String jkId, TextView tvId) {
+        // Чтобы не перегружать БД, мы считаем количество заявок для этого ЖК с таймстампом <= текущего
+        // Это даст порядковый номер заявки внутри этого конкретного ЖК
+        mDatabase.orderByChild("timestamp").endAt(model.getTimestamp()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int count = 0;
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String uid = ds.child("userId").getValue(String.class);
+                    if (jkId.equals(userJKMap.get(uid))) {
+                        count++;
+                    }
+                }
+                tvId.setText("#" + String.format("%03d", count));
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void setupNavigation() {
@@ -145,12 +209,15 @@ public class AdminMain extends AppCompatActivity {
     @Override protected void onStop() { super.onStop(); if (adapter != null) adapter.stopListening(); }
 
     public static class RequestViewHolder extends RecyclerView.ViewHolder {
-        TextView id, title;
+        TextView id, title, date, deadline, statusText;
         View statusView;
         public RequestViewHolder(@NonNull View itemView) {
             super(itemView);
             id = itemView.findViewById(R.id.tv_request_number);
             title = itemView.findViewById(R.id.tv_request_title);
+            date = itemView.findViewById(R.id.tv_request_date);
+            deadline = itemView.findViewById(R.id.tv_request_deadline);
+            statusText = itemView.findViewById(R.id.tv_request_status_text);
             statusView = itemView.findViewById(R.id.view_status_color);
         }
     }

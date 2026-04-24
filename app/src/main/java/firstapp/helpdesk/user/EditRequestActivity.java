@@ -2,6 +2,7 @@ package firstapp.helpdesk.user;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -166,49 +167,54 @@ public class EditRequestActivity extends AppCompatActivity {
     }
 
     private void loadRequestData() {
-        mDatabase.get().addOnSuccessListener(snapshot -> {
-            currentModel = snapshot.getValue(RequestModel.class);
-            if (currentModel == null) return;
+        mDatabase.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                currentModel = snapshot.getValue(RequestModel.class);
+                if (currentModel == null) return;
 
-            etTitle.setText(currentModel.getTitle());
-            etDescription.setText(currentModel.getDescription());
-            tvStatus.setText(currentModel.getStatus());
-            currentImageUrl = currentModel.getImageUrl();
-            currentVideoUrl = currentModel.getVideoUrl();
-            rbRating.setRating(currentModel.getRating());
-            selectedDeadline = currentModel.getDeadlineDate();
-            
-            updateDeadlineText();
+                etTitle.setText(currentModel.getTitle());
+                etDescription.setText(currentModel.getDescription());
+                tvStatus.setText(currentModel.getStatus());
+                currentImageUrl = currentModel.getImageUrl();
+                currentVideoUrl = currentModel.getVideoUrl();
+                rbRating.setRating(currentModel.getRating());
+                selectedDeadline = currentModel.getDeadlineDate();
+                
+                updateDeadlineText();
 
-            String status = currentModel.getStatus() != null ? currentModel.getStatus() : "";
-            boolean isNew = "Новая".equalsIgnoreCase(status);
-            boolean isCompleted = "Выполнено".equalsIgnoreCase(status);
-            boolean alreadyRated = currentModel.getRating() > 0;
-            
-            setFieldsEnabled(isNew);
+                String status = currentModel.getStatus() != null ? currentModel.getStatus() : "";
+                boolean isNew = "Новая".equalsIgnoreCase(status);
+                boolean isCompleted = "Выполнено".equalsIgnoreCase(status);
+                boolean alreadyRated = currentModel.getRating() > 0;
+                
+                setFieldsEnabled(isNew);
 
-            if (isCompleted) {
-                llRatingBlock.setVisibility(View.VISIBLE);
-                if (alreadyRated) {
-                    rbRating.setIsIndicator(true); // Запрещаем менять звезды
-                    btnSave.setVisibility(View.GONE); // Скрываем кнопку, так как уже оценено
+                if (isCompleted) {
+                    llRatingBlock.setVisibility(View.VISIBLE);
+                    if (alreadyRated) {
+                        rbRating.setIsIndicator(true);
+                        btnSave.setVisibility(View.GONE);
+                    } else {
+                        rbRating.setIsIndicator(false);
+                        btnSave.setVisibility(View.VISIBLE);
+                        btnSave.setText("Оценить и сохранить");
+                        btnSave.setTextColor(Color.WHITE); // По вашему запросу: текст на кнопке белый
+                    }
                 } else {
-                    rbRating.setIsIndicator(false);
-                    btnSave.setVisibility(View.VISIBLE);
-                    btnSave.setText("Оценить и сохранить");
+                    llRatingBlock.setVisibility(View.GONE);
                 }
-            } else {
-                llRatingBlock.setVisibility(View.GONE);
-            }
 
-            setSpinnerValue(spinnerCategory, currentModel.getCategory());
-            setSpinnerValue(spinnerPriority, currentModel.getPriority());
-            
-            loadWorkersAndSetSelection(currentModel.getExecutorId());
-            
-            updateAttachmentStatus();
-            renderImagePreview();
-            renderVideoPreview();
+                setSpinnerValue(spinnerCategory, currentModel.getCategory());
+                setSpinnerValue(spinnerPriority, currentModel.getPriority());
+                
+                loadWorkersAndSetSelection(currentModel.getExecutorId());
+                
+                updateAttachmentStatus();
+                renderImagePreview();
+                renderVideoPreview();
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
@@ -219,9 +225,11 @@ public class EditRequestActivity extends AppCompatActivity {
         spinnerPriority.setEnabled(enabled);
         spinnerExecutor.setEnabled(enabled);
         btnChangeDeadline.setEnabled(enabled);
-        btnSave.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        btnSave.setVisibility(enabled || ("Выполнено".equalsIgnoreCase(tvStatus.getText().toString()) && currentModel != null && currentModel.getRating() == 0) ? View.VISIBLE : View.GONE);
         findViewById(R.id.btn_edit_attach_image).setEnabled(enabled);
         findViewById(R.id.btn_edit_attach_video).setEnabled(enabled);
+        btnRemoveImage.setEnabled(enabled);
+        btnRemoveVideo.setEnabled(enabled);
         btnDelete.setVisibility(enabled ? View.VISIBLE : View.GONE);
     }
 
