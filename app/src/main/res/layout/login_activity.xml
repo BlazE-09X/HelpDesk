@@ -11,7 +11,7 @@
         android:id="@+id/textView"
         android:layout_width="108dp"
         android:layout_height="38dp"
-        android:layout_marginTop="104dp"
+        android:layout_marginTop="204dp"
         android:text="HelpDesk"
         android:textColor="@color/dark_blue"
         android:textSize="24sp"

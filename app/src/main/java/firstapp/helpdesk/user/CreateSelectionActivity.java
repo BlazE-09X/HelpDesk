@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import firstapp.helpdesk.R;
+import firstapp.helpdesk.tickets.CreateTicketActivity;
 
 public class CreateSelectionActivity extends AppCompatActivity {
 
@@ -18,16 +19,15 @@ public class CreateSelectionActivity extends AppCompatActivity {
         CardView btnEditExisting = findViewById(R.id.card_edit_existing);
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_user);
 
-        // Переход к созданию новой
+        // Исправлено: теперь открывается правильное активити
         btnCreateNew.setOnClickListener(v -> {
-            startActivity(new Intent(this, NewRequestActivity.class));
+            startActivity(new Intent(this, CreateTicketActivity.class));
         });
 
-        // Переход к редактированию
+        // Переход к списку для редактирования
         btnEditExisting.setOnClickListener(v -> {
-            // Тут можно направить на тот же UserMain, но с режимом выбора
-            // Или на отдельный экран
-            startActivity(new Intent(this, EditListActivity.class));
+            startActivity(new Intent(this, UserMain.class));
+            finish();
         });
 
         // Настройка нижнего меню

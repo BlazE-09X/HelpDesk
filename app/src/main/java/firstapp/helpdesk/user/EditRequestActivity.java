@@ -1,5 +1,6 @@
 package firstapp.helpdesk.user;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.widget.VideoView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -24,30 +26,43 @@ import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import firstapp.helpdesk.R;
+import firstapp.helpdesk.admin.UserModel;
 import firstapp.helpdesk.chat.ChatActivity;
 
 public class EditRequestActivity extends AppCompatActivity {
 
     private EditText etTitle, etDescription;
-    private Spinner spinnerCategory, spinnerPriority;
-    private TextView tvNumber, tvAttachmentStatus, tvStatus;
+    private Spinner spinnerCategory, spinnerPriority, spinnerExecutor;
+    private TextView tvNumber, tvAttachmentStatus, tvStatus, tvDeadline;
     private ImageView ivImagePreview;
     private VideoView vvVideoPreview;
-    private Button btnOpenImage, btnOpenVideo, btnRemoveImage, btnRemoveVideo, btnDelete;
+    private Button btnOpenImage, btnOpenVideo, btnRemoveImage, btnRemoveVideo, btnDelete, btnSave, btnChangeDeadline;
     private RatingBar rbRating;
     private View llRatingBlock;
 
-    private String requestId;
+    private String requestId, requestNumber;
     private DatabaseReference mDatabase;
     private String currentUid;
     private RequestModel currentModel;
+
+    private List<UserModel> workersList = new ArrayList<>();
+    private List<String> workerNames = new ArrayList<>();
+    private long selectedDeadline = 0;
 
     private Uri newImageUri, newVideoUri;
     private String currentImageUrl, currentVideoUrl;
@@ -83,6 +98,7 @@ public class EditRequestActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit_request);
 
         requestId = getIntent().getStringExtra("requestId");
+        requestNumber = getIntent().getStringExtra("requestNumber");
         currentUid = FirebaseAuth.getInstance().getUid();
 
         if (requestId == null || currentUid == null) {
@@ -93,6 +109,8 @@ public class EditRequestActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference("Requests").child(requestId);
 
         initViews();
+        if (requestNumber != null) tvNumber.setText(requestNumber);
+        
         setupSpinners();
         loadRequestData();
 
@@ -111,7 +129,7 @@ public class EditRequestActivity extends AppCompatActivity {
             updateAttachmentStatus(); renderVideoPreview();
         });
 
-        findViewById(R.id.btn_save_changes).setOnClickListener(v -> updateRequest());
+        btnSave.setOnClickListener(v -> updateRequest());
         findViewById(R.id.btn_open_chat).setOnClickListener(v -> {
             Intent intent = new Intent(this, ChatActivity.class);
             intent.putExtra("requestId", requestId);
@@ -119,13 +137,9 @@ public class EditRequestActivity extends AppCompatActivity {
         });
 
         btnDelete.setOnClickListener(v -> deleteRequest());
-
-        rbRating.setOnRatingBarChangeListener((ratingBar, rating, fromUser) -> {
-            if (fromUser) {
-                mDatabase.child("rating").setValue(rating);
-                Toast.makeText(this, "Оценка сохранена", Toast.LENGTH_SHORT).show();
-            }
-        });
+        btnChangeDeadline.setOnClickListener(v -> showDatePicker());
+        
+        findViewById(R.id.tv_edit_back).setOnClickListener(v -> finish());
     }
 
     private void initViews() {
@@ -133,8 +147,10 @@ public class EditRequestActivity extends AppCompatActivity {
         etDescription = findViewById(R.id.et_edit_description);
         spinnerCategory = findViewById(R.id.spinner_edit_category);
         spinnerPriority = findViewById(R.id.spinner_edit_priority);
+        spinnerExecutor = findViewById(R.id.spinner_edit_executor);
         tvNumber = findViewById(R.id.tv_edit_request_number);
         tvStatus = findViewById(R.id.tv_status);
+        tvDeadline = findViewById(R.id.tv_edit_deadline_display);
         tvAttachmentStatus = findViewById(R.id.tv_edit_attachment_status);
         ivImagePreview = findViewById(R.id.iv_edit_image_preview);
         vvVideoPreview = findViewById(R.id.vv_edit_video_preview);
@@ -143,6 +159,8 @@ public class EditRequestActivity extends AppCompatActivity {
         btnRemoveImage = findViewById(R.id.btn_edit_remove_image);
         btnRemoveVideo = findViewById(R.id.btn_edit_remove_video);
         btnDelete = findViewById(R.id.btn_delete_request);
+        btnSave = findViewById(R.id.btn_save_changes);
+        btnChangeDeadline = findViewById(R.id.btn_edit_change_deadline);
         rbRating = findViewById(R.id.rb_request_rating);
         llRatingBlock = findViewById(R.id.ll_rating_block);
     }
@@ -152,30 +170,130 @@ public class EditRequestActivity extends AppCompatActivity {
             currentModel = snapshot.getValue(RequestModel.class);
             if (currentModel == null) return;
 
-            // Проверка прав доступа
-            if (!currentModel.getUserId().equals(currentUid)) {
-                Toast.makeText(this, "Нет доступа к чужой заявке", Toast.LENGTH_SHORT).show();
-                finish();
-                return;
-            }
-
             etTitle.setText(currentModel.getTitle());
             etDescription.setText(currentModel.getDescription());
             tvStatus.setText(currentModel.getStatus());
             currentImageUrl = currentModel.getImageUrl();
             currentVideoUrl = currentModel.getVideoUrl();
             rbRating.setRating(currentModel.getRating());
+            selectedDeadline = currentModel.getDeadlineDate();
+            
+            updateDeadlineText();
 
-            if ("Выполнено".equalsIgnoreCase(currentModel.getStatus())) {
+            String status = currentModel.getStatus() != null ? currentModel.getStatus() : "";
+            boolean isNew = "Новая".equalsIgnoreCase(status);
+            boolean isCompleted = "Выполнено".equalsIgnoreCase(status);
+            boolean alreadyRated = currentModel.getRating() > 0;
+            
+            setFieldsEnabled(isNew);
+
+            if (isCompleted) {
                 llRatingBlock.setVisibility(View.VISIBLE);
+                if (alreadyRated) {
+                    rbRating.setIsIndicator(true); // Запрещаем менять звезды
+                    btnSave.setVisibility(View.GONE); // Скрываем кнопку, так как уже оценено
+                } else {
+                    rbRating.setIsIndicator(false);
+                    btnSave.setVisibility(View.VISIBLE);
+                    btnSave.setText("Оценить и сохранить");
+                }
+            } else {
+                llRatingBlock.setVisibility(View.GONE);
             }
 
             setSpinnerValue(spinnerCategory, currentModel.getCategory());
             setSpinnerValue(spinnerPriority, currentModel.getPriority());
+            
+            loadWorkersAndSetSelection(currentModel.getExecutorId());
+            
             updateAttachmentStatus();
             renderImagePreview();
             renderVideoPreview();
         });
+    }
+
+    private void setFieldsEnabled(boolean enabled) {
+        etTitle.setEnabled(enabled);
+        etDescription.setEnabled(enabled);
+        spinnerCategory.setEnabled(enabled);
+        spinnerPriority.setEnabled(enabled);
+        spinnerExecutor.setEnabled(enabled);
+        btnChangeDeadline.setEnabled(enabled);
+        btnSave.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        findViewById(R.id.btn_edit_attach_image).setEnabled(enabled);
+        findViewById(R.id.btn_edit_attach_video).setEnabled(enabled);
+        btnDelete.setVisibility(enabled ? View.VISIBLE : View.GONE);
+    }
+
+    private void loadWorkersAndSetSelection(String currentExecutorId) {
+        FirebaseDatabase.getInstance().getReference("Workers").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                workersList.clear();
+                workerNames.clear();
+                int selection = -1;
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    UserModel worker = ds.getValue(UserModel.class);
+                    if (worker != null) {
+                        worker.setId(ds.getKey());
+                        workersList.add(worker);
+                        String name = (worker.getSurname() + " " + worker.getName()).trim();
+                        workerNames.add(name);
+                        if (ds.getKey().equals(currentExecutorId)) selection = workerNames.size() - 1;
+                    }
+                }
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(EditRequestActivity.this, android.R.layout.simple_spinner_dropdown_item, workerNames);
+                spinnerExecutor.setAdapter(adapter);
+                if (selection != -1) spinnerExecutor.setSelection(selection);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void showDatePicker() {
+        Calendar calendar = Calendar.getInstance();
+        if (selectedDeadline > 0) calendar.setTimeInMillis(selectedDeadline);
+        new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
+            calendar.set(year, month, dayOfMonth);
+            selectedDeadline = calendar.getTimeInMillis();
+            updateDeadlineText();
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
+    private void updateDeadlineText() {
+        if (selectedDeadline > 0) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
+            tvDeadline.setText("Срок: " + sdf.format(selectedDeadline));
+        } else {
+            tvDeadline.setText("Дедлайн: Немедленно");
+        }
+    }
+
+    private void updateRequest() {
+        String status = tvStatus.getText().toString();
+        Map<String, Object> updates = new HashMap<>();
+
+        if ("Выполнено".equalsIgnoreCase(status)) {
+            updates.put("rating", rbRating.getRating());
+        } else {
+            String title = etTitle.getText().toString().trim();
+            String desc = etDescription.getText().toString().trim();
+            if (title.isEmpty() || desc.isEmpty()) return;
+
+            updates.put("title", title);
+            updates.put("description", desc);
+            updates.put("category", spinnerCategory.getSelectedItem().toString());
+            updates.put("priority", spinnerPriority.getSelectedItem().toString());
+            updates.put("deadlineDate", selectedDeadline);
+            updates.put("executionType", selectedDeadline > 0 ? "deadline" : "immediate");
+
+            if (spinnerExecutor.getSelectedItem() != null) {
+                updates.put("executorId", workersList.get(spinnerExecutor.getSelectedItemPosition()).getId());
+                updates.put("executorName", spinnerExecutor.getSelectedItem().toString());
+            }
+        }
+
+        uploadAttachmentsAndSave(updates);
     }
 
     private void deleteRequest() {
@@ -184,20 +302,6 @@ public class EditRequestActivity extends AppCompatActivity {
             Toast.makeText(this, "Заявка удалена", Toast.LENGTH_SHORT).show();
             finish();
         });
-    }
-
-    private void updateRequest() {
-        String title = etTitle.getText().toString().trim();
-        String desc = etDescription.getText().toString().trim();
-        if (title.isEmpty() || desc.isEmpty()) return;
-
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("title", title);
-        updates.put("description", desc);
-        updates.put("category", spinnerCategory.getSelectedItem().toString());
-        updates.put("priority", spinnerPriority.getSelectedItem().toString());
-
-        uploadAttachmentsAndSave(updates);
     }
 
     private void uploadAttachmentsAndSave(Map<String, Object> updates) {
@@ -220,7 +324,7 @@ public class EditRequestActivity extends AppCompatActivity {
 
     private void save(Map<String, Object> updates) {
         mDatabase.updateChildren(updates).addOnSuccessListener(aVoid -> {
-            Toast.makeText(this, "Сохранено", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Данные сохранены", Toast.LENGTH_SHORT).show();
             finish();
         });
     }
@@ -262,8 +366,16 @@ public class EditRequestActivity extends AppCompatActivity {
 
     private void renderVideoPreview() {
         Uri uri = newVideoUri != null ? newVideoUri : (currentVideoUrl != null && !videoRemoved ? Uri.parse(currentVideoUrl) : null);
-        if (uri != null) { vvVideoPreview.setVideoURI(uri); vvVideoPreview.setVisibility(View.VISIBLE); }
+        if (uri != null) { vvVideoPreview.setVideoURI(uri); vvPreview(uri); vvVideoPreview.setVisibility(View.VISIBLE); }
         else { vvVideoPreview.stopPlayback(); vvVideoPreview.setVisibility(View.GONE); }
+    }
+    
+    private void vvPreview(Uri uri) {
+        MediaController mc = new MediaController(this);
+        mc.setAnchorView(vvVideoPreview);
+        vvVideoPreview.setMediaController(mc);
+        vvVideoPreview.setVideoURI(uri);
+        vvVideoPreview.setOnPreparedListener(mp -> vvVideoPreview.seekTo(1));
     }
 
     private void openAttachment(String url) { if (url != null) startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); }

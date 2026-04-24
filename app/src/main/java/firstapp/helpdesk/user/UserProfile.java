@@ -37,13 +37,11 @@ public class UserProfile extends AppCompatActivity {
 
         loadUserData();
 
-        // Кнопка Мои заявки
         findViewById(R.id.btn_my_requests).setOnClickListener(v -> {
             startActivity(new Intent(this, UserMain.class));
             finish();
         });
 
-        // Кнопка Выйти
         findViewById(R.id.btn_logout).setOnClickListener(v -> {
             mAuth.signOut();
             Intent intent = new Intent(this, Login.class);
@@ -51,38 +49,31 @@ public class UserProfile extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Переходы на новые экраны изменения данных
         findViewById(R.id.btn_change_email).setOnClickListener(v ->
                 startActivity(new Intent(this, ChangeEmail.class)));
 
         findViewById(R.id.btn_change_password).setOnClickListener(v ->
                 startActivity(new Intent(this, ChangePassword.class)));
 
-        // Настройка нижнего меню
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation_user);
-        bottomNavigationView.setSelectedItemId(R.id.nav_profile); // Устанавливаем профиль активным
+        bottomNavigationView.setSelectedItemId(R.id.nav_profile);
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
                 startActivity(new Intent(this, UserMain.class));
-                overridePendingTransition(0, 0);
                 finish();
                 return true;
             } else if (id == R.id.nav_add) {
                 startActivity(new Intent(this, CreateSelectionActivity.class));
-                overridePendingTransition(0, 0);
                 finish();
                 return true;
-            } else if (id == R.id.nav_profile) {
-                return true; // Уже в профиле
             } else if (id == R.id.nav_search) {
-                // Возвращаемся на главную к поиску
                 startActivity(new Intent(this, UserMain.class));
                 finish();
                 return true;
             }
-            return false;
+            return id == R.id.nav_profile;
         });
     }
 
@@ -91,11 +82,23 @@ public class UserProfile extends AppCompatActivity {
             if (snapshot.exists()) {
                 UserModel user = snapshot.getValue(UserModel.class);
                 if (user != null) {
-                    // Используем геттеры из твоей модели
-                    tvName.setText(user.getFullname());
+                    // Собираем ФИО (Фамилия + Имя + Отчество)
+                    String fullName = (user.getSurname() != null ? user.getSurname() : "") + " " +
+                                      (user.getName() != null ? user.getName() : "") + " " +
+                                      (user.getPatronymic() != null ? user.getPatronymic() : "");
+                    
+                    if (fullName.trim().isEmpty()) fullName = user.getFullname();
+                    if (fullName == null || fullName.trim().isEmpty()) fullName = user.getEmail();
+                    
+                    tvName.setText(fullName.trim());
                     tvEmail.setText(user.getEmail());
-                    tvPhone.setText(snapshot.child("phone").getValue(String.class));
-                    tvLogin.setText(snapshot.child("login").getValue(String.class));
+
+                    // Используем String.valueOf для защиты от Long-to-String ошибки
+                    Object phoneObj = snapshot.child("phone").getValue();
+                    tvPhone.setText(phoneObj != null ? String.valueOf(phoneObj) : "Не указан");
+
+                    Object loginObj = snapshot.child("login").getValue();
+                    tvLogin.setText(loginObj != null ? String.valueOf(loginObj) : "Не указан");
                 }
             }
         }).addOnFailureListener(e ->

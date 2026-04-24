@@ -44,6 +44,7 @@ public class ExecutorDetailActivity extends AppCompatActivity {
     private VideoView vvVideoPreview;
     private Button btnOpenImage;
     private Button btnOpenVideo;
+    private Button btnSave;
     private Spinner spinnerStatus;
     private String requestId;
     private DatabaseReference requestRef;
@@ -55,6 +56,8 @@ public class ExecutorDetailActivity extends AppCompatActivity {
         setContentView(R.layout.executor_detail);
 
         requestId = getIntent().getStringExtra("requestId");
+        String requestNumber = getIntent().getStringExtra("requestNumber");
+        
         if (requestId == null) {
             Toast.makeText(this, "Ошибка: ID заявки не найден", Toast.LENGTH_SHORT).show();
             finish();
@@ -64,10 +67,15 @@ public class ExecutorDetailActivity extends AppCompatActivity {
         currentExecutorId = FirebaseAuth.getInstance().getUid();
         requestRef = FirebaseDatabase.getInstance().getReference("Requests").child(requestId);
         initViews();
+        
+        if (requestNumber != null) {
+            tvNumber.setText(requestNumber);
+        }
+        
         setupVideoView();
         loadRequestData();
 
-        findViewById(R.id.btn_detail_save).setOnClickListener(v -> saveStatusUpdate());
+        btnSave.setOnClickListener(v -> saveStatusUpdate());
         findViewById(R.id.tv_detail_back).setOnClickListener(v -> finish());
         findViewById(R.id.btn_detail_open_chat).setOnClickListener(v -> {
             Intent intent = new Intent(this, ChatActivity.class);
@@ -88,11 +96,18 @@ public class ExecutorDetailActivity extends AppCompatActivity {
         vvVideoPreview = findViewById(R.id.vv_detail_video_preview);
         btnOpenImage = findViewById(R.id.btn_detail_open_image);
         btnOpenVideo = findViewById(R.id.btn_detail_open_video);
+        btnSave = findViewById(R.id.btn_detail_save);
         spinnerStatus = findViewById(R.id.spinner_detail_status);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.status_array_executor, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerStatus.setAdapter(adapter);
+
+        // Изначально поля темы, категории и т.д. только для чтения для исполнителя
+        etTitle.setEnabled(false);
+        etCategory.setEnabled(false);
+        etPriority.setEnabled(false);
+        etDesc.setEnabled(false);
     }
 
     private void setupVideoView() {
@@ -130,6 +145,17 @@ public class ExecutorDetailActivity extends AppCompatActivity {
                             break;
                         }
                     }
+                }
+
+                // ЗАПРЕТ РЕДАКТИРОВАНИЯ: если заявка уже выполнена, блокируем всё
+                if ("Выполнено".equalsIgnoreCase(currentStatus)) {
+                    spinnerStatus.setEnabled(false);
+                    etComment.setEnabled(false);
+                    btnSave.setVisibility(View.GONE);
+                } else {
+                    spinnerStatus.setEnabled(true);
+                    etComment.setEnabled(true);
+                    btnSave.setVisibility(View.VISIBLE);
                 }
             }
 

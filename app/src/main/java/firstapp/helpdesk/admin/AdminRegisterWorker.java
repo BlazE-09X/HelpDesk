@@ -28,7 +28,7 @@ import firstapp.helpdesk.R;
 
 public class AdminRegisterWorker extends AppCompatActivity {
 
-    private EditText etEmail, etPassword, etName, etSurname;
+    private EditText etEmail, etPassword, etName, etSurname, etPatronymic;
     private Spinner spinnerSpecialization, spinnerCompany;
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
@@ -51,6 +51,7 @@ public class AdminRegisterWorker extends AppCompatActivity {
         etPassword = findViewById(R.id.et_worker_password);
         etName = findViewById(R.id.et_worker_name);
         etSurname = findViewById(R.id.et_worker_surname);
+        etPatronymic = findViewById(R.id.et_worker_patronymic);
         spinnerSpecialization = findViewById(R.id.spinner_worker_specialization);
         spinnerCompany = findViewById(R.id.spinner_worker_company);
         Button btnRegister = findViewById(R.id.btn_register_worker);
@@ -101,6 +102,7 @@ public class AdminRegisterWorker extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
         String name = etName.getText().toString().trim();
         String surname = etSurname.getText().toString().trim();
+        String patronymic = etPatronymic.getText().toString().trim();
         String spec = spinnerSpecialization.getSelectedItem().toString();
         
         String companyId = fixedCompanyId;
@@ -108,7 +110,7 @@ public class AdminRegisterWorker extends AppCompatActivity {
         
         if (companyId == null) {
             int companyPos = spinnerCompany.getSelectedItemPosition();
-            if (companyPos == 0) {
+            if (companyPos <= 0) {
                 Toast.makeText(this, "Выберите организацию!", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -125,36 +127,37 @@ public class AdminRegisterWorker extends AppCompatActivity {
         final String finalCompanyName = companyName;
         final String finalSurname = surname;
         final String finalName = name;
+        final String finalPatronymic = patronymic;
+        
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         String workerUid = task.getResult().getUser().getUid();
-                        saveWorkerToDatabase(workerUid, email, finalName, finalSurname, spec, finalCompanyId, finalCompanyName);
+                        saveWorkerToDatabase(workerUid, email, finalName, finalSurname, finalPatronymic, spec, finalCompanyId, finalCompanyName);
                     } else {
                         Toast.makeText(this, "Ошибка: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
-    private void saveWorkerToDatabase(String uid, String email, String name, String surname, String spec, String companyId, String companyName) {
-        String searchName = (surname + " " + name).toLowerCase();
+    private void saveWorkerToDatabase(String uid, String email, String name, String surname, String patronymic, String spec, String companyId, String companyName) {
+        String searchName = (surname + " " + name + " " + patronymic).toLowerCase();
 
         Map<String, Object> workerData = new HashMap<>();
         workerData.put("uid", uid);
         workerData.put("email", email);
         workerData.put("name", name);
         workerData.put("surname", surname);
+        workerData.put("patronymic", patronymic);
         workerData.put("role", "Исполнитель");
         workerData.put("specialization", spec);
         workerData.put("companyId", companyId);
         workerData.put("companyName", companyName);
         workerData.put("search_name", searchName);
 
-        // Сохраняем в новую таблицу Workers
         mDatabase.child("Workers").child(uid).setValue(workerData)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // Дублируем в users для логина
                         mDatabase.child("users").child(uid).setValue(workerData);
                         mDatabase.child("Organizations").child(companyId).child("workers").child(uid).setValue(true);
                         Toast.makeText(this, "Исполнитель добавлен", Toast.LENGTH_SHORT).show();

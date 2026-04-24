@@ -30,7 +30,6 @@ public class ExecutorMain extends AppCompatActivity {
     private String executorSpecialization = "";
     private SharedPreferences sharedPreferences;
 
-    // Кастомный менеджер для предотвращения краша "Inconsistency detected"
     private static class WrapContentLinearLayoutManager extends LinearLayoutManager {
         public WrapContentLinearLayoutManager(Context context) {
             super(context);
@@ -92,9 +91,9 @@ public class ExecutorMain extends AppCompatActivity {
 
     private void setupAdapter() {
         DatabaseReference requestsRef = FirebaseDatabase.getInstance().getReference("Requests");
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        // Фильтрация по специализации: исполнитель видит только свои категории
-        Query query = requestsRef.orderByChild("category").equalTo(executorSpecialization);
+        Query query = requestsRef.orderByChild("executorId").equalTo(uid);
 
         FirebaseRecyclerOptions<RequestModel> options =
                 new FirebaseRecyclerOptions.Builder<RequestModel>()
@@ -108,23 +107,45 @@ public class ExecutorMain extends AppCompatActivity {
         adapter = new FirebaseRecyclerAdapter<RequestModel, UserMain.RequestViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull UserMain.RequestViewHolder holder, int position, @NonNull RequestModel model) {
-                holder.number.setText(String.format("#%03d", position + 1));
+                String formattedNum = String.format("#%03d", position + 1);
+                holder.number.setText(formattedNum);
                 holder.title.setText("Тема: " + model.getTitle());
 
-                int color;
                 String status = model.getStatus() != null ? model.getStatus() : "Новая";
+                boolean isCompleted = "Выполнено".equalsIgnoreCase(status);
+                
+                if (holder.statusText != null) {
+                    holder.statusText.setText(status);
+                }
+
+                int color;
                 switch (status) {
                     case "Новая": color = 0xFF00BFFF; break;
                     case "В работе": color = 0xFFFFA500; break;
-                    default: color = 0xFF32CD32; break;
+                    case "Выполнено": color = 0xFF888888; break; // Сделали серым по запросу
+                    default: color = 0xFF888888; break;
                 }
+                
                 holder.statusColor.setBackgroundColor(color);
+                if (holder.statusText != null) {
+                    holder.statusText.setTextColor(color);
+                }
+
+                // Дедлайн становится серым, если заявка выполнена
+                if (holder.deadline != null) {
+                    if (isCompleted) {
+                        holder.deadline.setTextColor(0xFF888888);
+                    } else {
+                        holder.deadline.setTextColor(0xFFD32F2F); // Красный для активных
+                    }
+                }
 
                 holder.itemView.setOnClickListener(v -> {
                     int currentPos = holder.getBindingAdapterPosition();
                     if (currentPos != RecyclerView.NO_POSITION) {
                         Intent intent = new Intent(ExecutorMain.this, ExecutorDetailActivity.class);
                         intent.putExtra("requestId", getRef(currentPos).getKey());
+                        intent.putExtra("requestNumber", formattedNum);
                         startActivity(intent);
                     }
                 });

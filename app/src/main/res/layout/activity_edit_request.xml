@@ -37,45 +37,32 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:text="Статус"
-                    android:textColor="#00BFFF"
+                    android:textColor="#32CD32"
                     android:textSize="22sp"
                     android:textStyle="italic|bold" />
             </RelativeLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp"
-                android:gravity="center_vertical">
-                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Тема" android:textColor="#00008B" android:textStyle="bold" />
-                <EditText android:id="@+id/et_edit_title" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white" android:paddingHorizontal="10dp" />
-            </LinearLayout>
+            <EditText android:id="@+id/et_edit_title" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/edit_text_bg" android:hint="Тема" android:paddingHorizontal="15dp" android:layout_marginBottom="10dp"/>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Категория" android:textColor="#00008B" android:textStyle="bold"/>
+            <Spinner android:id="@+id/spinner_edit_category" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/edit_text_bg" android:layout_marginBottom="10dp"/>
+
+            <EditText android:id="@+id/et_edit_description" android:layout_width="match_parent" android:layout_height="100dp" android:background="@drawable/edit_text_bg" android:gravity="top" android:hint="Описание" android:padding="15dp" android:layout_marginBottom="10dp"/>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Приоритет" android:textColor="#00008B" android:textStyle="bold"/>
+            <Spinner android:id="@+id/spinner_edit_priority" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/edit_text_bg" android:layout_marginBottom="10dp"/>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Исполнитель" android:textColor="#00008B" android:textStyle="bold"/>
+            <Spinner android:id="@+id/spinner_edit_executor" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/edit_text_bg" android:layout_marginBottom="10dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp"
-                android:gravity="center_vertical">
-                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Категория" android:textColor="#00008B" android:textStyle="bold" />
-                <Spinner android:id="@+id/spinner_edit_category" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white" />
-            </LinearLayout>
-
-            <EditText
-                android:id="@+id/et_edit_description"
-                android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:layout_marginBottom="15dp"
-                android:background="@android:color/white"
-                android:gravity="top"
-                android:padding="10dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp"
-                android:gravity="center_vertical">
-                <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Приоритет" android:textColor="#00008B" android:textStyle="bold" />
-                <Spinner android:id="@+id/spinner_edit_priority" android:layout_width="match_parent" android:layout_height="45dp" android:background="@android:color/white" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="15dp">
+                <Button android:id="@+id/btn_edit_change_deadline" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Изменить срок" android:backgroundTint="#1B1D91"/>
+                <TextView android:id="@+id/tv_edit_deadline_display" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="Срок: Немедленно" android:textColor="#000080"/>
             </LinearLayout>
 
             <LinearLayout
@@ -86,93 +73,45 @@
                 android:layout_marginBottom="15dp"
                 android:gravity="center"
                 android:visibility="gone">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Оцените работу исполнителя" android:textColor="#00008B" android:textStyle="bold"/>
-                <RatingBar
-                    android:id="@+id/rb_request_rating"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:numStars="5"
-                    android:stepSize="1.0" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ваша оценка" android:textColor="#00008B" android:textStyle="bold"/>
+                <RatingBar android:id="@+id/rb_request_rating" android:layout_width="wrap_content" android:layout_height="wrap_content" android:numStars="5" android:stepSize="1.0" />
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:orientation="horizontal">
-                <Button android:id="@+id/btn_edit_attach_image" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="5dp" android:layout_weight="1" android:text="Добавить фото" />
-                <Button android:id="@+id/btn_edit_attach_video" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="5dp" android:layout_weight="1" android:text="Добавить видео" />
+            <TextView android:id="@+id/tv_edit_attachment_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Вложения: - / -" android:textAlignment="center" android:layout_marginBottom="10dp"/>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="10dp">
+                <Button android:id="@+id/btn_edit_attach_image" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Фото" android:layout_marginEnd="5dp"/>
+                <Button android:id="@+id/btn_edit_attach_video" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Видео" android:layout_marginStart="5dp"/>
             </LinearLayout>
 
-            <ImageView
-                android:id="@+id/iv_edit_image_preview"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginBottom="10dp"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                android:visibility="gone" />
+            <ImageView android:id="@+id/iv_edit_image_preview" android:layout_width="match_parent" android:layout_height="200dp" android:visibility="gone" android:layout_marginBottom="10dp" android:scaleType="centerCrop"/>
+            <VideoView android:id="@+id/vv_edit_video_preview" android:layout_width="match_parent" android:layout_height="200dp" android:visibility="gone" android:layout_marginBottom="10dp"/>
 
-            <VideoView
-                android:id="@+id/vv_edit_video_preview"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginBottom="10dp"
-                android:visibility="gone" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:orientation="horizontal">
-                <Button android:id="@+id/btn_edit_open_image" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="5dp" android:layout_weight="1" android:text="Открыть фото" android:visibility="gone" />
-                <Button android:id="@+id/btn_edit_open_video" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="5dp" android:layout_weight="1" android:text="Открыть видео" android:visibility="gone" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="10dp">
+                <Button android:id="@+id/btn_edit_open_image" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Открыть фото" android:visibility="gone" android:layout_marginEnd="5dp"/>
+                <Button android:id="@+id/btn_edit_open_video" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Открыть видео" android:visibility="gone" android:layout_marginStart="5dp"/>
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:orientation="horizontal">
-                <Button android:id="@+id/btn_edit_remove_image" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="5dp" android:layout_weight="1" android:enabled="false" android:text="Удалить фото" />
-                <Button android:id="@+id/btn_edit_remove_video" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="5dp" android:layout_weight="1" android:enabled="false" android:text="Удалить видео" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="10dp">
+                <Button android:id="@+id/btn_edit_remove_image" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Удалить фото" android:layout_marginEnd="5dp" android:backgroundTint="#F44336"/>
+                <Button android:id="@+id/btn_edit_remove_video" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Удалить видео" android:layout_marginStart="5dp" android:backgroundTint="#F44336"/>
             </LinearLayout>
+
+            <Button android:id="@+id/btn_open_chat" android:layout_width="match_parent" android:layout_height="55dp" android:text="Чат" android:backgroundTint="#FF9800" android:layout_marginBottom="10dp"/>
+            <Button android:id="@+id/btn_save_changes" android:layout_width="match_parent" android:layout_height="55dp" android:text="Сохранить изменения" android:backgroundTint="#1B1D91" android:layout_marginBottom="10dp"/>
+            <Button android:id="@+id/btn_delete_request" android:layout_width="match_parent" android:layout_height="55dp" android:text="Удалить" android:backgroundTint="#F44336"/>
 
             <TextView
-                android:id="@+id/tv_edit_attachment_status"
-                android:layout_width="match_parent"
+                android:id="@+id/tv_edit_back"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp"
-                android:text="Вложения: - / -"
-                android:textAlignment="center"
-                android:textSize="12sp" />
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="30dp"
+                android:alpha="0.6"
+                android:text="Назад"
+                android:textColor="#2E3192" />
 
-            <Button
-                android:id="@+id/btn_open_chat"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="5dp"
-                android:backgroundTint="#FF9800"
-                android:text="Чат по заявке"
-                android:textColor="@android:color/white" />
-
-            <Button
-                android:id="@+id/btn_save_changes"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="10dp"
-                android:backgroundTint="#00008B"
-                android:text="Сохранить"
-                android:textColor="@android:color/white" />
-
-            <Button
-                android:id="@+id/btn_delete_request"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="10dp"
-                android:backgroundTint="#F44336"
-                android:text="Удалить заявку"
-                android:textColor="@android:color/white" />
         </LinearLayout>
     </ScrollView>
 

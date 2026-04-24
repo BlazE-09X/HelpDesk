@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,8 +43,8 @@ public class ChatActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private EditText etMessage;
     private ImageButton btnSend;
-    private LinearLayout llInputArea;
-    private TextView tvChatClosed;
+    private View inputContainer; // Контейнер с полем ввода
+    private TextView tvChatStatus;
     private FirebaseRecyclerAdapter<MessageModel, MessageViewHolder> adapter;
 
     private static class WrapContentLinearLayoutManager extends LinearLayoutManager {
@@ -65,14 +64,15 @@ public class ChatActivity extends AppCompatActivity {
         if (requestId == null) { finish(); return; }
 
         currentUserId = FirebaseAuth.getInstance().getUid();
+        // Используем путь Chats/requestId/messages
         chatRef = FirebaseDatabase.getInstance().getReference("Chats").child(requestId).child("messages");
         requestRef = FirebaseDatabase.getInstance().getReference("Requests").child(requestId);
 
         recyclerView = findViewById(R.id.rv_chat_messages);
         etMessage = findViewById(R.id.et_chat_message);
         btnSend = findViewById(R.id.btn_chat_send);
-        llInputArea = findViewById(R.id.ll_chat_input_area); // Нужно убедиться что такой ID есть в activity_chat.xml
-        tvChatClosed = findViewById(R.id.tv_chat_closed);   // Или создать его программно/в XML
+        inputContainer = findViewById(R.id.ll_chat_input_area); // Проверь этот ID в XML
+        tvChatStatus = findViewById(R.id.tv_chat_closed);       // Проверь этот ID в XML
 
         recyclerView.setLayoutManager(new WrapContentLinearLayoutManager(this));
         
@@ -89,13 +89,14 @@ public class ChatActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String status = snapshot.getValue(String.class);
                 if ("Выполнено".equalsIgnoreCase(status)) {
-                    if (llInputArea != null) llInputArea.setVisibility(View.GONE);
-                    if (tvChatClosed != null) {
-                        tvChatClosed.setVisibility(View.VISIBLE);
-                        tvChatClosed.setText("Заявка выполнена. Чат закрыт.");
+                    if (inputContainer != null) inputContainer.setVisibility(View.GONE);
+                    if (tvChatStatus != null) {
+                        tvChatStatus.setVisibility(View.VISIBLE);
+                        tvChatStatus.setText("Заявка выполнена. Чат доступен только для чтения.");
                     }
-                    etMessage.setEnabled(false);
-                    btnSend.setEnabled(false);
+                } else {
+                    if (inputContainer != null) inputContainer.setVisibility(View.VISIBLE);
+                    if (tvChatStatus != null) tvChatStatus.setVisibility(View.GONE);
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
@@ -134,18 +135,29 @@ public class ChatActivity extends AppCompatActivity {
         };
         recyclerView.setAdapter(adapter);
         adapter.startListening();
+        
+        // Автопрокрутка вниз при новых сообщениях
+        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                recyclerView.smoothScrollToPosition(adapter.getItemCount());
+            }
+        });
     }
 
     private void sendMessage() {
         String text = etMessage.getText().toString().trim();
         if (TextUtils.isEmpty(text)) return;
+        
         String msgId = chatRef.push().getKey();
         if (msgId == null) return;
 
-        MessageModel message = new MessageModel(currentUserId, "receiver", text, System.currentTimeMillis());
+        // Важно: в MessageModel должен быть пустой конструктор и правильные поля
+        MessageModel message = new MessageModel(currentUserId, "", text, System.currentTimeMillis());
         chatRef.child(msgId).setValue(message).addOnSuccessListener(aVoid -> {
             etMessage.setText("");
-            recyclerView.smoothScrollToPosition(adapter.getItemCount());
+        }).addOnFailureListener(e -> {
+            Toast.makeText(ChatActivity.this, "Ошибка отправки", Toast.LENGTH_SHORT).show();
         });
     }
 

@@ -52,7 +52,7 @@
             android:id="@+id/iv_delete_housing"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:src="@android:drawable/ic_menu_delete"
+            android:src="@drawable/delete"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"

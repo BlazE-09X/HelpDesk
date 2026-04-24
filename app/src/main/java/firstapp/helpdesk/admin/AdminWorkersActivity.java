@@ -53,7 +53,6 @@ public class AdminWorkersActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_workers);
 
-        // Используем новую таблицу Workers
         mDatabase = FirebaseDatabase.getInstance().getReference("Workers");
         recyclerView = findViewById(R.id.rv_admin_workers);
         recyclerView.setLayoutManager(new WrapContentLinearLayoutManager(this));
@@ -100,8 +99,10 @@ public class AdminWorkersActivity extends AppCompatActivity {
                 holder.itemView.setVisibility(View.VISIBLE);
                 holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                 
+                // Исправлено: добавляем Отчество в строку полного имени
                 String fullName = ((model.getSurname() != null ? model.getSurname() : "") + " " + 
-                                 (model.getName() != null ? model.getName() : "")).trim();
+                                 (model.getName() != null ? model.getName() : "") + " " +
+                                 (model.getPatronymic() != null ? model.getPatronymic() : "")).trim();
                 
                 holder.name.setText(fullName.isEmpty() ? model.getEmail() : fullName);
                 holder.info.setText("Спец.: " + (model.getSpecialization() != null ? model.getSpecialization() : "Не указана"));
@@ -111,7 +112,6 @@ public class AdminWorkersActivity extends AppCompatActivity {
                     if (currentPos != RecyclerView.NO_POSITION) {
                         String uid = getRef(currentPos).getKey();
                         getRef(currentPos).removeValue().addOnSuccessListener(aVoid -> {
-                            // Удаляем и из основной таблицы пользователей
                             FirebaseDatabase.getInstance().getReference("users").child(uid).removeValue();
                             Toast.makeText(AdminWorkersActivity.this, "Удалено", Toast.LENGTH_SHORT).show();
                         });

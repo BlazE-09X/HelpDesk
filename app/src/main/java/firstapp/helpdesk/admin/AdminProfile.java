@@ -74,16 +74,19 @@ public class AdminProfile extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    // ИСПРАВЛЕНО: Вместо ФИО пишем "Администратор" или берем роль из БД
-                    String role = snapshot.child("role").getValue(String.class);
-                    tvFullName.setText(role != null ? role : "Администратор");
-
-                    tvLogin.setText(snapshot.child("login").getValue(String.class));
-                    tvEmail.setText(snapshot.child("email").getValue(String.class));
+                    // Используем String.valueOf() для безопасного получения данных, если они в БД сохранены как Long
                     
-                    // Отображение телефона
-                    String phone = snapshot.child("phone").getValue(String.class);
-                    tvPhone.setText(phone != null ? phone : "Не указан");
+                    Object roleObj = snapshot.child("role").getValue();
+                    tvFullName.setText(roleObj != null ? String.valueOf(roleObj) : "Администратор");
+
+                    Object loginObj = snapshot.child("login").getValue();
+                    tvLogin.setText(loginObj != null ? String.valueOf(loginObj) : "Не указан");
+
+                    Object emailObj = snapshot.child("email").getValue();
+                    tvEmail.setText(emailObj != null ? String.valueOf(emailObj) : "Не указана");
+                    
+                    Object phoneObj = snapshot.child("phone").getValue();
+                    tvPhone.setText(phoneObj != null ? String.valueOf(phoneObj) : "Не указан");
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}

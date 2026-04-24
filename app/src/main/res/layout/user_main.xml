@@ -27,13 +27,19 @@
 
     <EditText
         android:id="@+id/et_search_requests"
-        android:layout_width="160dp"
+        android:layout_width="200dp"
         android:layout_height="40dp"
         android:layout_marginEnd="16dp"
-        android:background="@drawable/loupe"
+        android:background="@drawable/search_bg"
         android:hint="Поиск..."
-        android:paddingHorizontal="15dp"
+        android:paddingHorizontal="12dp"
+        android:drawableStart="@drawable/loupe"
+        android:drawablePadding="8dp"
         android:textSize="14sp"
+        android:textColor="@android:color/black"
+        android:textColorHint="#888888"
+        android:singleLine="true"
+        android:imeOptions="actionSearch"
         app:layout_constraintTop_toTopOf="@id/header"
         app:layout_constraintBottom_toBottomOf="@id/header"
         app:layout_constraintEnd_toEndOf="parent" />

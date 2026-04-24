@@ -79,21 +79,25 @@ public class Companies extends AppCompatActivity {
         ImageView btnBin = findViewById(R.id.btn_delete_company);
         btnBin.setOnClickListener(v -> {
             isDeleteMode = true;
-            tvCancel.setVisibility(View.VISIBLE);
-            adapter.notifyDataSetChanged();
+            if (tvCancel != null) tvCancel.setVisibility(View.VISIBLE);
+            if (adapter != null) adapter.notifyDataSetChanged();
         });
 
-        tvCancel.setOnClickListener(v -> {
-            exitDeleteMode();
-        });
+        if (tvCancel != null) {
+            tvCancel.setOnClickListener(v -> {
+                exitDeleteMode();
+            });
+        }
 
+        // Обработка системной кнопки "Назад"
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 if (isDeleteMode) {
                     exitDeleteMode();
                 } else {
-                    finish();
+                    setEnabled(false); // Отключаем колбэк
+                    getOnBackPressedDispatcher().onBackPressed(); // Вызываем стандартное действие Назад
                 }
             }
         });
@@ -103,8 +107,8 @@ public class Companies extends AppCompatActivity {
 
     private void exitDeleteMode() {
         isDeleteMode = false;
-        tvCancel.setVisibility(View.GONE);
-        adapter.notifyDataSetChanged();
+        if (tvCancel != null) tvCancel.setVisibility(View.GONE);
+        if (adapter != null) adapter.notifyDataSetChanged();
     }
 
     private void setupAdapter(Query query) {
@@ -144,7 +148,7 @@ public class Companies extends AppCompatActivity {
         if (text.isEmpty()) {
             setupAdapter(mDatabase);
         } else {
-            String searchFormatted = text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
+            String searchFormatted = text.isEmpty() ? "" : text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
             Query query = mDatabase.orderByChild("name").startAt(searchFormatted).endAt(searchFormatted + "\uf8ff");
             setupAdapter(query);
         }

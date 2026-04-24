@@ -60,6 +60,16 @@
                 android:layout_marginBottom="16dp"/>
 
             <EditText
+                android:id="@+id/et_worker_patronymic"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:background="@android:drawable/editbox_background"
+                android:hint="Отчество (если есть)"
+                android:inputType="textPersonName"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"/>
+
+            <EditText
                 android:id="@+id/et_worker_email"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"

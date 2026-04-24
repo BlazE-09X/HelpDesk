@@ -25,7 +25,6 @@ public class EditListActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private FirebaseRecyclerAdapter<RequestModel, UserMain.RequestViewHolder> adapter;
 
-    // Кастомный менеджер для предотвращения краша "Inconsistency detected"
     private static class WrapContentLinearLayoutManager extends LinearLayoutManager {
         public WrapContentLinearLayoutManager(Context context) {
             super(context);
@@ -51,6 +50,7 @@ public class EditListActivity extends AppCompatActivity {
         String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         DatabaseReference requestsRef = FirebaseDatabase.getInstance().getReference("Requests");
+        // Запрашиваем все заявки пользователя, фильтрацию сделаем в адаптере для надежности
         Query query = requestsRef.orderByChild("userId").equalTo(currentUid);
 
         FirebaseRecyclerOptions<RequestModel> options =
@@ -61,9 +61,10 @@ public class EditListActivity extends AppCompatActivity {
         adapter = new FirebaseRecyclerAdapter<RequestModel, UserMain.RequestViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull UserMain.RequestViewHolder holder, int position, @NonNull RequestModel model) {
+                String status = model.getStatus() != null ? model.getStatus().trim() : "Новая";
 
-                // Фильтр: показываем только со статусом "Новая"
-                if (!"Новая".equals(model.getStatus())) {
+                // СТРОГИЙ ФИЛЬТР: только "Новая" (без учета регистра)
+                if (!"Новая".equalsIgnoreCase(status)) {
                     holder.itemView.setVisibility(View.GONE);
                     holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
                     return;
@@ -73,21 +74,20 @@ public class EditListActivity extends AppCompatActivity {
                 holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-                int realPositionForNumber = position + 1;
-                String formattedNumber = String.format("#%03d", realPositionForNumber);
+                String formattedNumber = String.format("#%03d", position + 1);
                 holder.number.setText(formattedNumber);
-
                 holder.title.setText("Тема: " + model.getTitle());
-                holder.statusColor.setBackgroundColor(0xFF00BFFF); // Голубой
+                
+                if (holder.statusText != null) {
+                    holder.statusText.setText(status);
+                }
+                holder.statusColor.setBackgroundColor(0xFF00BFFF); // Голубой для новых
 
                 holder.itemView.setOnClickListener(v -> {
-                    int currentPos = holder.getAbsoluteAdapterPosition();
-                    if (currentPos != RecyclerView.NO_POSITION) {
-                        Intent intent = new Intent(EditListActivity.this, EditRequestActivity.class);
-                        intent.putExtra("requestId", getRef(currentPos).getKey());
-                        intent.putExtra("requestNumber", formattedNumber);
-                        startActivity(intent);
-                    }
+                    Intent intent = new Intent(EditListActivity.this, EditRequestActivity.class);
+                    intent.putExtra("requestId", getRef(holder.getBindingAdapterPosition()).getKey());
+                    intent.putExtra("requestNumber", formattedNumber);
+                    startActivity(intent);
                 });
             }
 
