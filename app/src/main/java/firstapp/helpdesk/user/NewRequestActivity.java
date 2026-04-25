@@ -148,6 +148,7 @@ public class NewRequestActivity extends AppCompatActivity {
     }
 
     private void loadFilteredWorkers() {
+        if (spinnerCategory.getSelectedItem() == null) return;
         String selectedCategory = spinnerCategory.getSelectedItem().toString();
         mDatabase.child("Workers").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -184,7 +185,7 @@ public class NewRequestActivity extends AppCompatActivity {
 
     private void uploadFilesAndSaveRequest() {
         String requestId = mDatabase.child("Requests").push().getKey();
-        saveToFirebase(requestId, null, null); // Упрощенно для примера
+        saveToFirebase(requestId, null, null);
     }
 
     private void saveToFirebase(String requestId, String imgUrl, String vidUrl) {
@@ -193,7 +194,16 @@ public class NewRequestActivity extends AppCompatActivity {
         data.put("userId", currentUid);
         data.put("executorId", workerList.get(spinnerWorker.getSelectedItemPosition()-1).getUid());
         data.put("status", "Новая");
+        data.put("title", etTitle.getText().toString());
+        data.put("description", etDescription.getText().toString());
+        data.put("category", spinnerCategory.getSelectedItem().toString());
+        data.put("priority", spinnerPriority.getSelectedItem().toString());
         data.put("timestamp", System.currentTimeMillis());
+        data.put("executionType", rgExecutionType.getCheckedRadioButtonId() == R.id.rb_immediate ? "immediate" : "deadline");
+        if (selectedCalendar.getTimeInMillis() > System.currentTimeMillis()) {
+            data.put("deadlineDate", selectedCalendar.getTimeInMillis());
+        }
+        
         mDatabase.child("Requests").child(requestId).setValue(data).addOnSuccessListener(aVoid -> {
             Toast.makeText(this, "Заявка создана", Toast.LENGTH_SHORT).show();
             finish();
@@ -201,9 +211,29 @@ public class NewRequestActivity extends AppCompatActivity {
     }
 
     private void setupSpinners() {
-        ArrayAdapter<CharSequence> catAdapter = ArrayAdapter.createFromResource(this, R.array.categories_array, android.R.layout.simple_spinner_item);
-        catAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerCategory.setAdapter(catAdapter);
+        // Загружаем категории из БД вместо ресурсов
+        mDatabase.child("Categories").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<String> categories = new ArrayList<>();
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String cat = ds.getValue(String.class);
+                    if (cat != null) categories.add(cat);
+                }
+                if (categories.isEmpty()) {
+                    categories.add("Отопление"); // Дефолт
+                }
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(NewRequestActivity.this, android.R.layout.simple_spinner_item, categories);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerCategory.setAdapter(adapter);
+                loadFilteredWorkers();
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        ArrayAdapter<CharSequence> prioAdapter = ArrayAdapter.createFromResource(this, R.array.priority_array, android.R.layout.simple_spinner_item);
+        prioAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerPriority.setAdapter(prioAdapter);
     }
 
     private void updateAttachmentStatus() { tvAttachmentStatus.setText(imageUri != null || videoUri != null ? "Файлы прикреплены" : "Нет файлов"); }

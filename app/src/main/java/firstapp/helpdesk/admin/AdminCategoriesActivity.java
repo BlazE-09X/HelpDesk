@@ -1,11 +1,13 @@
 package firstapp.helpdesk.admin;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,12 +29,18 @@ import firstapp.helpdesk.R;
 
 public class AdminCategoriesActivity extends AppCompatActivity {
 
-    private EditText etNewCategory;
-    private Button btnAdd;
+    private EditText etNewCategory, etSearch;
     private RecyclerView recyclerView;
     private CategoryAdapter adapter;
     private DatabaseReference mDatabase;
-    private List<String> categories = new ArrayList<>();
+    private List<CategoryItem> fullList = new ArrayList<>();
+    private List<CategoryItem> filteredList = new ArrayList<>();
+
+    private static class CategoryItem {
+        String id;
+        String name;
+        CategoryItem(String id, String name) { this.id = id; this.name = name; }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +50,7 @@ public class AdminCategoriesActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference("Categories");
 
         etNewCategory = findViewById(R.id.et_new_category);
-        btnAdd = findViewById(R.id.btn_add_category);
+        etSearch = findViewById(R.id.et_search_category);
         recyclerView = findViewById(R.id.rv_categories);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -51,14 +59,22 @@ public class AdminCategoriesActivity extends AppCompatActivity {
 
         loadCategories();
 
-        btnAdd.setOnClickListener(v -> {
+        findViewById(R.id.btn_add_category).setOnClickListener(v -> {
             String name = etNewCategory.getText().toString().trim();
             if (!name.isEmpty()) {
                 mDatabase.push().setValue(name).addOnSuccessListener(aVoid -> {
                     etNewCategory.setText("");
-                    Toast.makeText(this, "Категория добавлена", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Добавлено", Toast.LENGTH_SHORT).show();
                 });
             }
+        });
+
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filter(s.toString());
+            }
+            @Override public void afterTextChanged(Editable s) {}
         });
     }
 
@@ -66,50 +82,55 @@ public class AdminCategoriesActivity extends AppCompatActivity {
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                categories.clear();
+                fullList.clear();
                 for (DataSnapshot ds : snapshot.getChildren()) {
-                    categories.add(ds.getValue(String.class));
+                    String name = ds.getValue(String.class);
+                    if (name != null) fullList.add(new CategoryItem(ds.getKey(), name));
                 }
-                adapter.notifyDataSetChanged();
+                filter(etSearch.getText().toString());
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+
+    private void filter(String text) {
+        filteredList.clear();
+        for (CategoryItem item : fullList) {
+            if (item.name.toLowerCase().contains(text.toLowerCase())) {
+                filteredList.add(item);
+            }
+        }
+        adapter.notifyDataSetChanged();
     }
 
     private class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHolder> {
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_2, parent, false);
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_category, parent, false);
             return new ViewHolder(v);
         }
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            String cat = categories.get(position);
-            holder.text.setText(cat);
-            holder.itemView.setOnLongClickListener(v -> {
-                mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for (DataSnapshot ds : snapshot.getChildren()) {
-                            if (cat.equals(ds.getValue(String.class))) {
-                                ds.getRef().removeValue();
-                                break;
-                            }
-                        }
-                    }
-                    @Override public void onCancelled(@NonNull DatabaseError error) {}
-                });
-                return true;
+            CategoryItem item = filteredList.get(position);
+            holder.text.setText(item.name);
+            holder.btnDelete.setOnClickListener(v -> {
+                mDatabase.child(item.id).removeValue().addOnSuccessListener(aVoid -> 
+                    Toast.makeText(AdminCategoriesActivity.this, "Удалено", Toast.LENGTH_SHORT).show());
             });
         }
 
-        @Override public int getItemCount() { return categories.size(); }
+        @Override public int getItemCount() { return filteredList.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView text;
-            ViewHolder(View v) { super(v); text = v.findViewById(android.R.id.text1); }
+            ImageView btnDelete;
+            ViewHolder(View v) { 
+                super(v); 
+                text = v.findViewById(R.id.tv_category_name); 
+                btnDelete = v.findViewById(R.id.iv_delete_category);
+            }
         }
     }
 }

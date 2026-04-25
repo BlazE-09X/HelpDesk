@@ -45,10 +45,21 @@
                 android:textSize="32sp"
                 android:textStyle="italic|bold" />
 
+            <TextView android:id="@+id/tv_detail_jk_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ЖК: -" android:textSize="18sp" android:textStyle="bold" android:textColor="#00008B" android:layout_marginTop="5dp"/>
+            <TextView android:id="@+id/tv_detail_user_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="От: -" android:textSize="16sp" android:layout_marginTop="2dp" />
+            <TextView android:id="@+id/tv_detail_created_date" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Создана: -" android:textSize="14sp" android:layout_marginTop="2dp"/>
+            <TextView android:id="@+id/tv_detail_deadline" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Дедлайн: -" android:textSize="14sp" android:layout_marginTop="2dp" android:textStyle="bold" android:layout_marginBottom="5dp"/>
+            <RatingBar
+                android:id="@+id/rb_detail_rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?android:attr/ratingBarStyleSmall"
+                android:layout_marginBottom="10dp"
+                android:visibility="gone" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:text="Тема"
                 android:textColor="#00008B"
                 android:textStyle="bold" />
@@ -148,6 +159,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="5dp"
                     android:layout_weight="1"
+                    android:backgroundTint="#1B1D91"
                     android:text="Открыть фото"
                     android:visibility="gone" />
 
@@ -157,6 +169,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
                     android:layout_weight="1"
+                    android:backgroundTint="#1B1D91"
                     android:text="Открыть видео"
                     android:visibility="gone" />
             </LinearLayout>
@@ -198,7 +211,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:layout_marginTop="20dp"
-                android:backgroundTint="#FF9800"
+                android:backgroundTint="#7A7AEE"
                 android:text="Чат по заявке"
                 android:textColor="@android:color/white" />
 
@@ -207,7 +220,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:layout_marginTop="15dp"
-                android:backgroundTint="#00008B"
+                android:backgroundTint="#1B1D91"
                 android:text="Сохранить"
                 android:textColor="@android:color/white" />
 

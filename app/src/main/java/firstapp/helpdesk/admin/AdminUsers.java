@@ -81,8 +81,7 @@ public class AdminUsers extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 applyFilters(s.toString().trim());
             }
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
 
         setupAdapter(mDatabase);
@@ -94,11 +93,11 @@ public class AdminUsers extends AppCompatActivity {
     }
 
     private void loadJKList() {
-        jkList.clear();
-        jkList.add("Все ЖК");
-        FirebaseDatabase.getInstance().getReference("HousingComplexes").addListenerForSingleValueEvent(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference("HousingComplexes").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                jkList.clear();
+                jkList.add("Все ЖК");
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     String name = ds.child("name").getValue(String.class);
                     if (name != null) jkList.add(name);
@@ -143,7 +142,6 @@ public class AdminUsers extends AppCompatActivity {
         adapter = new FirebaseRecyclerAdapter<UserModel, UserViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull UserViewHolder holder, int position, @NonNull UserModel model) {
-                // Если выбран фильтр по ЖК, но в поиске что-то есть, фильтруем локально (Firebase не поддерживает кратные фильтры)
                 String searchText = ((EditText)findViewById(R.id.et_search_users)).getText().toString().trim().toLowerCase();
                 if (!searchText.isEmpty() && !selectedJK.equals("Все ЖК")) {
                     String fullName = ((model.getSurname() != null ? model.getSurname() : "") + " " + 

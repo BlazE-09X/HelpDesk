@@ -69,7 +69,7 @@ public class UserProfile extends AppCompatActivity {
                 finish();
                 return true;
             } else if (id == R.id.nav_search) {
-                startActivity(new Intent(this, UserMain.class));
+                startActivity(new Intent(this, AllWorkersActivity.class));
                 finish();
                 return true;
             }

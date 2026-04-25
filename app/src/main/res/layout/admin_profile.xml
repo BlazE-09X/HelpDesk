@@ -74,16 +74,6 @@
             </LinearLayout>
 
             <Button
-                android:id="@+id/btn_manage_categories"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="Управление категориями"
-                android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                android:backgroundTint="@color/figma_blue"
-                android:layout_marginBottom="5dp" />
-
-            <Button
                 android:id="@+id/btn_change_email"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"

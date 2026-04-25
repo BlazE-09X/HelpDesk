@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +17,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import firstapp.helpdesk.Login;
 import firstapp.helpdesk.R;
+import firstapp.helpdesk.user.ChangeEmail;
+import firstapp.helpdesk.user.ChangePassword;
 import firstapp.helpdesk.user.RequestModel;
 
 import java.util.Locale;
@@ -40,6 +43,9 @@ public class ExecutorProfile extends AppCompatActivity {
 
         loadExecutorData();
         calculateAverageRating();
+
+        findViewById(R.id.btn_change_email).setOnClickListener(v -> startActivity(new Intent(this, ChangeEmail.class)));
+        findViewById(R.id.btn_change_password).setOnClickListener(v -> startActivity(new Intent(this, ChangePassword.class)));
 
         findViewById(R.id.btn_executor_logout).setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
@@ -66,7 +72,6 @@ public class ExecutorProfile extends AppCompatActivity {
         String uid = FirebaseAuth.getInstance().getUid();
         if (uid == null) return;
         
-        // Сначала ищем в новой таблице Workers
         DatabaseReference workerRef = FirebaseDatabase.getInstance().getReference("Workers").child(uid);
 
         workerRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -75,7 +80,6 @@ public class ExecutorProfile extends AppCompatActivity {
                 if (snapshot.exists()) {
                     displayData(snapshot);
                 } else {
-                    // Если нет в Workers, ищем в общей таблице users
                     FirebaseDatabase.getInstance().getReference("users").child(uid)
                             .addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
@@ -96,10 +100,9 @@ public class ExecutorProfile extends AppCompatActivity {
         String phone = snapshot.child("phone").getValue(String.class);
         String email = snapshot.child("email").getValue(String.class);
 
-        // Формируем полное имя: Фамилия + Имя
         String fullName = ((surname != null ? surname : "") + " " + (name != null ? name : "")).trim();
         
-        if (fullName.isEmpty()) fullName = email; // Запасной вариант
+        if (fullName.isEmpty()) fullName = email;
 
         tvName.setText(fullName);
         tvLogin.setText(fullName);

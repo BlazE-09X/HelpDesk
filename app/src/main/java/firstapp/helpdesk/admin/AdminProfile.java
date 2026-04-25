@@ -26,7 +26,7 @@ import firstapp.helpdesk.R;
 public class AdminProfile extends AppCompatActivity {
 
     private TextView tvFullName, tvLogin, tvPhone, tvEmail;
-    private Button btnChangeEmail, btnChangePassword, btnLogout, btnManageCategories;
+    private Button btnChangeEmail, btnChangePassword, btnLogout;
     private ImageView ivAvatar;
     private BottomNavigationView bottomNavigationView;
 
@@ -51,7 +51,6 @@ public class AdminProfile extends AppCompatActivity {
         tvPhone = findViewById(R.id.tv_profile_phone);
         tvEmail = findViewById(R.id.tv_profile_email);
 
-        btnManageCategories = findViewById(R.id.btn_manage_categories);
         btnChangeEmail = findViewById(R.id.btn_change_email);
         btnChangePassword = findViewById(R.id.btn_change_password);
         btnLogout = findViewById(R.id.btn_logout);
@@ -60,7 +59,6 @@ public class AdminProfile extends AppCompatActivity {
         loadAdminData();
 
         ivAvatar.setOnClickListener(v -> startActivity(new Intent(this, AdminPhotoActivity.class)));
-        btnManageCategories.setOnClickListener(v -> startActivity(new Intent(this, AdminCategoriesActivity.class)));
 
         btnLogout.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();

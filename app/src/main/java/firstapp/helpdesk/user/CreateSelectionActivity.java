@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import firstapp.helpdesk.R;
-import firstapp.helpdesk.tickets.CreateTicketActivity;
 
 public class CreateSelectionActivity extends AppCompatActivity {
 
@@ -19,18 +18,16 @@ public class CreateSelectionActivity extends AppCompatActivity {
         CardView btnEditExisting = findViewById(R.id.card_edit_existing);
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_user);
 
-        // Исправлено: теперь открывается правильное активити
         btnCreateNew.setOnClickListener(v -> {
-            startActivity(new Intent(this, CreateTicketActivity.class));
+            Intent intent = new Intent(this, EditRequestActivity.class);
+            intent.putExtra("isNewRequest", true);
+            startActivity(intent);
         });
 
-        // Переход к списку для редактирования
         btnEditExisting.setOnClickListener(v -> {
-            startActivity(new Intent(this, UserMain.class));
-            finish();
+            startActivity(new Intent(this, EditListActivity.class));
         });
 
-        // Настройка нижнего меню
         bottomNav.setSelectedItemId(R.id.nav_add);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -40,6 +37,11 @@ public class CreateSelectionActivity extends AppCompatActivity {
                 return true;
             } else if (id == R.id.nav_profile) {
                 startActivity(new Intent(this, UserProfile.class));
+                finish();
+                return true;
+            } else if (id == R.id.nav_search) {
+                // ИСПРАВЛЕНО: Теперь всегда на AllWorkersActivity
+                startActivity(new Intent(this, AllWorkersActivity.class));
                 finish();
                 return true;
             }

@@ -28,14 +28,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Изменить фото"
-            android:layout_marginEnd="10dp" />
+            android:layout_marginEnd="10dp"
+            android:backgroundTint="@color/figma_blue"/>
 
         <Button
             android:id="@+id/btn_back"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Назад" />
+            android:text="Назад"
+            android:backgroundTint="@color/figma_blue"/>
     </LinearLayout>
 
     <ProgressBar

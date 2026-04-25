@@ -3,6 +3,7 @@ package firstapp.helpdesk.executor;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,6 +20,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import firstapp.helpdesk.R;
 import firstapp.helpdesk.user.RequestModel;
 import firstapp.helpdesk.user.UserMain;
@@ -112,7 +118,6 @@ public class ExecutorMain extends AppCompatActivity {
                 holder.title.setText("Тема: " + model.getTitle());
 
                 String status = model.getStatus() != null ? model.getStatus() : "Новая";
-                boolean isCompleted = "Выполнено".equalsIgnoreCase(status);
                 
                 if (holder.statusText != null) {
                     holder.statusText.setText(status);
@@ -122,7 +127,7 @@ public class ExecutorMain extends AppCompatActivity {
                 switch (status) {
                     case "Новая": color = 0xFF00BFFF; break;
                     case "В работе": color = 0xFFFFA500; break;
-                    case "Выполнено": color = 0xFF888888; break; // Сделали серым по запросу
+                    case "Выполнено": color = 0xFF888888; break;
                     default: color = 0xFF888888; break;
                 }
                 
@@ -131,13 +136,27 @@ public class ExecutorMain extends AppCompatActivity {
                     holder.statusText.setTextColor(color);
                 }
 
-                // Дедлайн становится серым, если заявка выполнена
+                SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
+                if (model.getTimestamp() > 0) {
+                    holder.date.setText("Создана: " + sdf.format(new Date(model.getTimestamp())));
+                }
+
                 if (holder.deadline != null) {
-                    if (isCompleted) {
-                        holder.deadline.setTextColor(0xFF888888);
+                    if ("immediate".equals(model.getExecutionType()) || model.getDeadlineDate() == 0) {
+                        holder.deadline.setText("Дедлайн: Немедленно");
+                        holder.deadline.setTextColor(Color.RED);
                     } else {
-                        holder.deadline.setTextColor(0xFFD32F2F); // Красный для активных
+                        SimpleDateFormat sdfD = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
+                        holder.deadline.setText("Дедлайн: " + sdfD.format(new Date(model.getDeadlineDate())));
+                        holder.deadline.setTextColor(Color.GRAY);
                     }
+                }
+
+                if (model.getRating() > 0) {
+                    holder.ratingBar.setVisibility(View.VISIBLE);
+                    holder.ratingBar.setRating(model.getRating());
+                } else {
+                    holder.ratingBar.setVisibility(View.GONE);
                 }
 
                 holder.itemView.setOnClickListener(v -> {

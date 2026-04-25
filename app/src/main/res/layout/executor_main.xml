@@ -17,7 +17,7 @@
         android:id="@+id/tv_executor_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Пользователи"
+        android:text="Главный экран"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="bold"

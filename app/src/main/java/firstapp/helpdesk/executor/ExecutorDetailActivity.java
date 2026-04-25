@@ -1,6 +1,7 @@
 package firstapp.helpdesk.executor;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.MediaController;
+import android.widget.RatingBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,30 +27,28 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import firstapp.helpdesk.R;
+import firstapp.helpdesk.admin.UserModel;
 import firstapp.helpdesk.chat.ChatActivity;
+import firstapp.helpdesk.user.RequestModel;
 
 public class ExecutorDetailActivity extends AppCompatActivity {
 
-    private EditText etTitle;
-    private EditText etCategory;
-    private EditText etPriority;
-    private EditText etDesc;
-    private EditText etComment;
-    private TextView tvNumber;
-    private TextView tvAttachmentStatus;
+    private EditText etTitle, etCategory, etPriority, etDesc, etComment;
+    private TextView tvNumber, tvAttachmentStatus, tvJKName, tvUserName, tvDeadline, tvCreatedDate;
     private ImageView ivImagePreview;
     private VideoView vvVideoPreview;
-    private Button btnOpenImage;
-    private Button btnOpenVideo;
-    private Button btnSave;
+    private Button btnOpenImage, btnOpenVideo, btnSave;
     private Spinner spinnerStatus;
+    private RatingBar rbRating;
     private String requestId;
     private DatabaseReference requestRef;
-    private String currentExecutorId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,18 +59,14 @@ public class ExecutorDetailActivity extends AppCompatActivity {
         String requestNumber = getIntent().getStringExtra("requestNumber");
         
         if (requestId == null) {
-            Toast.makeText(this, "Ошибка: ID заявки не найден", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        currentExecutorId = FirebaseAuth.getInstance().getUid();
         requestRef = FirebaseDatabase.getInstance().getReference("Requests").child(requestId);
         initViews();
         
-        if (requestNumber != null) {
-            tvNumber.setText(requestNumber);
-        }
+        if (requestNumber != null) tvNumber.setText(requestNumber);
         
         setupVideoView();
         loadRequestData();
@@ -86,6 +82,8 @@ public class ExecutorDetailActivity extends AppCompatActivity {
 
     private void initViews() {
         tvNumber = findViewById(R.id.tv_detail_number);
+        tvJKName = findViewById(R.id.tv_detail_jk_name);
+        tvUserName = findViewById(R.id.tv_detail_user_name);
         etTitle = findViewById(R.id.et_detail_title);
         etCategory = findViewById(R.id.et_detail_category);
         etPriority = findViewById(R.id.et_detail_priority);
@@ -98,124 +96,128 @@ public class ExecutorDetailActivity extends AppCompatActivity {
         btnOpenVideo = findViewById(R.id.btn_detail_open_video);
         btnSave = findViewById(R.id.btn_detail_save);
         spinnerStatus = findViewById(R.id.spinner_detail_status);
+        tvDeadline = findViewById(R.id.tv_detail_deadline);
+        tvCreatedDate = findViewById(R.id.tv_detail_created_date);
+        rbRating = findViewById(R.id.rb_detail_rating);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.status_array_executor, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerStatus.setAdapter(adapter);
-
-        // Изначально поля темы, категории и т.д. только для чтения для исполнителя
-        etTitle.setEnabled(false);
-        etCategory.setEnabled(false);
-        etPriority.setEnabled(false);
-        etDesc.setEnabled(false);
     }
 
     private void setupVideoView() {
         MediaController controller = new MediaController(this);
         controller.setAnchorView(vvVideoPreview);
         vvVideoPreview.setMediaController(controller);
-        vvVideoPreview.setOnPreparedListener(mp -> {
-            mp.setLooping(false);
-            vvVideoPreview.seekTo(100);
-        });
     }
 
     private void loadRequestData() {
-        requestRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        requestRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!snapshot.exists()) return;
-                ExecuterRequestModel model = snapshot.getValue(ExecuterRequestModel.class);
+                
+                RequestModel model = snapshot.getValue(RequestModel.class);
                 if (model == null) return;
 
                 etTitle.setText(model.getTitle());
                 etCategory.setText(model.getCategory());
                 etPriority.setText(model.getPriority());
                 etDesc.setText(model.getDescription());
-                etComment.setText(model.getExecutorComment());
-                bindAttachments(model.getImageUrl(), model.getVideoUrl());
-
-                String currentStatus = model.getStatus();
-                if (currentStatus != null) {
-                    ArrayAdapter<?> adapter = (ArrayAdapter<?>) spinnerStatus.getAdapter();
-                    for (int i = 0; i < adapter.getCount(); i++) {
-                        Object item = adapter.getItem(i);
-                        if (currentStatus.equals(String.valueOf(item))) {
-                            spinnerStatus.setSelection(i);
-                            break;
-                        }
-                    }
+                etComment.setText(snapshot.child("executorComment").getValue(String.class));
+                
+                // Отображение рейтинга, если он есть
+                if (model.getRating() > 0) {
+                    rbRating.setVisibility(View.VISIBLE);
+                    rbRating.setRating(model.getRating());
+                } else {
+                    rbRating.setVisibility(View.GONE);
                 }
 
-                // ЗАПРЕТ РЕДАКТИРОВАНИЯ: если заявка уже выполнена, блокируем всё
+                // Дата создания
+                if (model.getTimestamp() > 0) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
+                    tvCreatedDate.setText("Создана: " + sdf.format(new Date(model.getTimestamp())));
+                }
+
+                // Дедлайн
+                if ("immediate".equals(model.getExecutionType()) || model.getDeadlineDate() == 0) {
+                    tvDeadline.setText("Дедлайн: Немедленно");
+                    tvDeadline.setTextColor(Color.RED);
+                } else {
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
+                    tvDeadline.setText("Дедлайн: " + sdf.format(new Date(model.getDeadlineDate())));
+                    tvDeadline.setTextColor(Color.GRAY);
+                }
+
+                String img = model.getImageUrl();
+                String vid = model.getVideoUrl();
+                bindAttachments(img, vid);
+
+                String currentStatus = model.getStatus();
+                setSpinnerValue(spinnerStatus, currentStatus);
+
                 if ("Выполнено".equalsIgnoreCase(currentStatus)) {
                     spinnerStatus.setEnabled(false);
                     etComment.setEnabled(false);
                     btnSave.setVisibility(View.GONE);
-                } else {
-                    spinnerStatus.setEnabled(true);
-                    etComment.setEnabled(true);
-                    btnSave.setVisibility(View.VISIBLE);
+                }
+
+                String userId = model.getUserId();
+                if (userId != null) {
+                    FirebaseDatabase.getInstance().getReference("Residents").child(userId)
+                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot s) {
+                                    UserModel u = s.getValue(UserModel.class);
+                                    if (u != null) {
+                                        tvUserName.setText("От: " + (u.getSurname() + " " + u.getName()).trim());
+                                        tvJKName.setText("ЖК: " + (u.getCompanyName() != null ? u.getCompanyName() : "Не указан"));
+                                    }
+                                }
+                                @Override public void onCancelled(@NonNull DatabaseError error) {}
+                            });
                 }
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(ExecutorDetailActivity.this, "Ошибка БД: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
     private void bindAttachments(String imageUrl, String videoUrl) {
-        boolean hasImage = imageUrl != null && !imageUrl.trim().isEmpty();
-        boolean hasVideo = videoUrl != null && !videoUrl.trim().isEmpty();
-
-        tvAttachmentStatus.setText("Вложения: " + (hasImage ? "фото" : "-") + " / " + (hasVideo ? "видео" : "-"));
-        btnOpenImage.setVisibility(hasImage ? View.VISIBLE : View.GONE);
-        btnOpenVideo.setVisibility(hasVideo ? View.VISIBLE : View.GONE);
-        btnOpenImage.setOnClickListener(v -> openAttachment(imageUrl));
-        btnOpenVideo.setOnClickListener(v -> openAttachment(videoUrl));
-
-        if (hasImage) {
-            Glide.with(this).load(imageUrl).into(ivImagePreview);
+        boolean hasImg = imageUrl != null && !imageUrl.isEmpty();
+        boolean hasVid = videoUrl != null && !videoUrl.isEmpty();
+        tvAttachmentStatus.setText("Вложения: " + (hasImg ? "фото" : "-") + " / " + (hasVid ? "видео" : "-"));
+        
+        if (hasImg) {
             ivImagePreview.setVisibility(View.VISIBLE);
+            if (!isFinishing() && !isDestroyed()) {
+                Glide.with(this).load(imageUrl).into(ivImagePreview);
+            }
+            btnOpenImage.setVisibility(View.VISIBLE);
+            btnOpenImage.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(imageUrl))));
         } else {
-            ivImagePreview.setImageDrawable(null);
             ivImagePreview.setVisibility(View.GONE);
+            btnOpenImage.setVisibility(View.GONE);
         }
-
-        if (hasVideo) {
-            vvVideoPreview.setVideoURI(Uri.parse(videoUrl));
-            vvVideoPreview.setVisibility(View.VISIBLE);
-            vvVideoPreview.seekTo(100);
+        
+        if (hasVid) {
+            btnOpenVideo.setVisibility(View.VISIBLE);
+            btnOpenVideo.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(videoUrl))));
         } else {
-            vvVideoPreview.stopPlayback();
-            vvVideoPreview.setVisibility(View.GONE);
+            btnOpenVideo.setVisibility(View.GONE);
         }
-    }
-
-    private void openAttachment(String url) {
-        if (url == null || url.trim().isEmpty()) {
-            Toast.makeText(this, "Вложение не найдено", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
     }
 
     private void saveStatusUpdate() {
-        String newStatus = spinnerStatus.getSelectedItem().toString();
-        String comment = etComment.getText().toString();
-
         Map<String, Object> updates = new HashMap<>();
-        updates.put("status", newStatus);
-        updates.put("executorComment", comment);
-        updates.put("executorId", currentExecutorId); // Привязываем исполнителя к заявке
+        updates.put("status", spinnerStatus.getSelectedItem().toString());
+        updates.put("executorComment", etComment.getText().toString());
+        requestRef.updateChildren(updates).addOnSuccessListener(aVoid -> finish());
+    }
 
-        requestRef.updateChildren(updates)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Данные сохранены", Toast.LENGTH_SHORT).show();
-                    finish();
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Ошибка сохранения", Toast.LENGTH_SHORT).show());
+    private void setSpinnerValue(Spinner s, String v) {
+        if (v == null) return;
+        ArrayAdapter adapter = (ArrayAdapter) s.getAdapter();
+        for (int i = 0; i < adapter.getCount(); i++) if (v.equals(adapter.getItem(i).toString())) { s.setSelection(i); break; }
     }
 }

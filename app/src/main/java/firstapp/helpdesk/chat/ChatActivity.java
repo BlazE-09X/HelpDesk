@@ -43,7 +43,7 @@ public class ChatActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private EditText etMessage;
     private ImageButton btnSend;
-    private View inputContainer; // Контейнер с полем ввода
+    private View inputContainer;
     private TextView tvChatStatus;
     private FirebaseRecyclerAdapter<MessageModel, MessageViewHolder> adapter;
 
@@ -64,15 +64,14 @@ public class ChatActivity extends AppCompatActivity {
         if (requestId == null) { finish(); return; }
 
         currentUserId = FirebaseAuth.getInstance().getUid();
-        // Используем путь Chats/requestId/messages
         chatRef = FirebaseDatabase.getInstance().getReference("Chats").child(requestId).child("messages");
         requestRef = FirebaseDatabase.getInstance().getReference("Requests").child(requestId);
 
         recyclerView = findViewById(R.id.rv_chat_messages);
         etMessage = findViewById(R.id.et_chat_message);
         btnSend = findViewById(R.id.btn_chat_send);
-        inputContainer = findViewById(R.id.ll_chat_input_area); // Проверь этот ID в XML
-        tvChatStatus = findViewById(R.id.tv_chat_closed);       // Проверь этот ID в XML
+        inputContainer = findViewById(R.id.ll_chat_input_area);
+        tvChatStatus = findViewById(R.id.tv_chat_closed);
 
         recyclerView.setLayoutManager(new WrapContentLinearLayoutManager(this));
         
@@ -136,7 +135,6 @@ public class ChatActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
         adapter.startListening();
         
-        // Автопрокрутка вниз при новых сообщениях
         adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
             public void onItemRangeInserted(int positionStart, int itemCount) {
@@ -152,7 +150,6 @@ public class ChatActivity extends AppCompatActivity {
         String msgId = chatRef.push().getKey();
         if (msgId == null) return;
 
-        // Важно: в MessageModel должен быть пустой конструктор и правильные поля
         MessageModel message = new MessageModel(currentUserId, "", text, System.currentTimeMillis());
         chatRef.child(msgId).setValue(message).addOnSuccessListener(aVoid -> {
             etMessage.setText("");

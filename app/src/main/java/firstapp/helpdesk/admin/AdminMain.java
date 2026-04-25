@@ -2,6 +2,7 @@ package firstapp.helpdesk.admin;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -82,14 +83,14 @@ public class AdminMain extends AppCompatActivity {
                     String jkId = ds.child("companyId").getValue(String.class);
                     if (jkId != null) userJKMap.put(ds.getKey(), jkId);
                 }
-                setupAdapter(); // Вызываем после загрузки карты пользователей
+                setupAdapter();
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
     private void setupAdapter() {
-        Query query = mDatabase.limitToLast(10); // Берем чуть больше, чтобы последние 5 были актуальны
+        Query query = mDatabase.limitToLast(10);
         
         FirebaseRecyclerOptions<RequestModel> options = new FirebaseRecyclerOptions.Builder<RequestModel>()
                 .setQuery(query, RequestModel.class).build();
@@ -100,7 +101,6 @@ public class AdminMain extends AppCompatActivity {
                 String jkId = userJKMap.get(model.getUserId());
                 if (jkId == null) jkId = "default";
 
-                // Логика нумерации по ЖК
                 calculateJKNumber(model, jkId, holder.id);
 
                 holder.title.setText("Тема: " + model.getTitle());
@@ -121,12 +121,17 @@ public class AdminMain extends AppCompatActivity {
                 SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
                 holder.date.setText("Дата: " + sdf.format(new Date(model.getTimestamp())));
 
-                if ("immediate".equals(model.getExecutionType())) {
-                    holder.deadline.setText("Дедлайн: Немедленно");
-                } else if (model.getDeadlineDate() > 0) {
-                    holder.deadline.setText("Дедлайн: " + sdf.format(new Date(model.getDeadlineDate())));
-                } else {
-                    holder.deadline.setText("Дедлайн: Не указан");
+                if (holder.deadline != null) {
+                    if ("immediate".equals(model.getExecutionType())) {
+                        holder.deadline.setText("Дедлайн: Немедленно");
+                        holder.deadline.setTextColor(Color.RED);
+                    } else if (model.getDeadlineDate() > 0) {
+                        holder.deadline.setText("Дедлайн: " + sdf.format(new Date(model.getDeadlineDate())));
+                        holder.deadline.setTextColor(Color.GRAY);
+                    } else {
+                        holder.deadline.setText("Дедлайн: Не указан");
+                        holder.deadline.setTextColor(Color.GRAY);
+                    }
                 }
 
                 holder.itemView.setOnClickListener(v -> {
@@ -149,8 +154,6 @@ public class AdminMain extends AppCompatActivity {
     }
 
     private void calculateJKNumber(RequestModel model, String jkId, TextView tvId) {
-        // Чтобы не перегружать БД, мы считаем количество заявок для этого ЖК с таймстампом <= текущего
-        // Это даст порядковый номер заявки внутри этого конкретного ЖК
         mDatabase.orderByChild("timestamp").endAt(model.getTimestamp()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

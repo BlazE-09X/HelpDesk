@@ -42,10 +42,8 @@ public class Login extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         sharedPreferences = getSharedPreferences("HelpDeskPrefs", Context.MODE_PRIVATE);
 
-        // Проверка существующей сессии
         if (mAuth.getCurrentUser() != null && sharedPreferences.contains("userRole")) {
             String role = sharedPreferences.getString("userRole", "");
-            Log.d(TAG, "session_restore: userId=" + mAuth.getCurrentUser().getUid() + ", role=" + role);
             navigateToMain(role);
             return;
         }
@@ -87,19 +85,16 @@ public class Login extends AppCompatActivity {
     }
 
     private void signIn(String email, String password) {
-        Log.d(TAG, "login_attempt: email=" + email);
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
         btnLogin.setEnabled(false);
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        Log.d(TAG, "login_success: userId=" + mAuth.getCurrentUser().getUid());
                         fetchUserRoleAndRedirect();
                     } else {
                         if (progressBar != null) progressBar.setVisibility(View.GONE);
                         btnLogin.setEnabled(true);
-                        Log.e(TAG, "login_error: " + (task.getException() != null ? task.getException().getMessage() : "unknown"));
                         Toast.makeText(this, "Ошибка входа: проверьте данные или сбросьте пароль", Toast.LENGTH_LONG).show();
                     }
                 });
@@ -111,7 +106,6 @@ public class Login extends AppCompatActivity {
         String uid = mAuth.getCurrentUser().getUid();
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
 
-        Log.d(TAG, "fetch_role: userId=" + uid);
         userRef.get().addOnCompleteListener(task -> {
             if (progressBar != null) progressBar.setVisibility(View.GONE);
             btnLogin.setEnabled(true);
@@ -120,8 +114,6 @@ public class Login extends AppCompatActivity {
                 String role = task.getResult().child("role").getValue(String.class);
                 if (role == null) role = "User";
 
-                Log.d(TAG, "role_found: userId=" + uid + ", role=" + role);
-                // Сохранение сессии
                 sharedPreferences.edit()
                         .putString("userId", uid)
                         .putString("userRole", role)
@@ -129,7 +121,6 @@ public class Login extends AppCompatActivity {
 
                 navigateToMain(role);
             } else {
-                Log.e(TAG, "user_data_missing: userId=" + uid);
                 Toast.makeText(this, "Данные пользователя не найдены", Toast.LENGTH_SHORT).show();
                 mAuth.signOut();
             }
@@ -137,7 +128,6 @@ public class Login extends AppCompatActivity {
     }
 
     private void navigateToMain(String role) {
-        Log.d("FLOW", "navigate_to_main: role=" + role);
         Intent intent;
         if (role.equalsIgnoreCase("Администратор") || role.equalsIgnoreCase("admin")) {
             intent = new Intent(this, AdminMain.class);

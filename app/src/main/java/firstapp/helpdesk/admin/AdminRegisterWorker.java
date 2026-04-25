@@ -1,5 +1,6 @@
 package firstapp.helpdesk.admin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -55,6 +56,7 @@ public class AdminRegisterWorker extends AppCompatActivity {
         spinnerSpecialization = findViewById(R.id.spinner_worker_specialization);
         spinnerCompany = findViewById(R.id.spinner_worker_company);
         Button btnRegister = findViewById(R.id.btn_register_worker);
+        Button btnManageCats = findViewById(R.id.btn_manage_categories);
 
         setupSpecializationSpinner();
         
@@ -65,13 +67,32 @@ public class AdminRegisterWorker extends AppCompatActivity {
         }
 
         btnRegister.setOnClickListener(v -> registerWorker());
+        btnManageCats.setOnClickListener(v -> startActivity(new Intent(this, AdminCategoriesActivity.class)));
     }
 
     private void setupSpecializationSpinner() {
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.categories_array, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerSpecialization.setAdapter(adapter);
+        // Загружаем категории из БД для спиннера
+        mDatabase.child("Categories").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<String> categories = new ArrayList<>();
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String cat = ds.getValue(String.class);
+                    if (cat != null) categories.add(cat);
+                }
+                if (categories.isEmpty()) {
+                    // Дефолтные если пусто
+                    categories.add("Сантехника");
+                    categories.add("Электрика");
+                    categories.add("Тех Поддержка");
+                    categories.add("Лифт");
+                }
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(AdminRegisterWorker.this, android.R.layout.simple_spinner_item, categories);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerSpecialization.setAdapter(adapter);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void loadOrganizations() {
@@ -103,6 +124,11 @@ public class AdminRegisterWorker extends AppCompatActivity {
         String name = etName.getText().toString().trim();
         String surname = etSurname.getText().toString().trim();
         String patronymic = etPatronymic.getText().toString().trim();
+        
+        if (spinnerSpecialization.getSelectedItem() == null) {
+            Toast.makeText(this, "Добавьте категории!", Toast.LENGTH_SHORT).show();
+            return;
+        }
         String spec = spinnerSpecialization.getSelectedItem().toString();
         
         String companyId = fixedCompanyId;
