@@ -55,7 +55,7 @@ public class AdminChangeEmail extends AppCompatActivity {
 
                 String uid = user.getUid();
                 
-                // Используем более современный метод или обычный с детальным логом
+
                 user.updateEmail(email).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         // Обновляем в БД
@@ -69,7 +69,7 @@ public class AdminChangeEmail extends AppCompatActivity {
                             }
                         });
                     } else {
-                        // ПОКАЗЫВАЕМ РЕАЛЬНУЮ ПРИЧИНУ ОШИБКИ
+
                         String error = task.getException() != null ? task.getException().getMessage() : "Неизвестная ошибка";
                         if (error.contains("recent login")) {
                             Toast.makeText(this, "Ошибка безопасности! Пожалуйста, выйдите из приложения и войдите СНОВА, прежде чем менять почту.", Toast.LENGTH_LONG).show();

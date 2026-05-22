@@ -25,7 +25,7 @@ public class CreateCompany extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.admin_create_company);
 
-        // Используем путь "Organizations", чтобы Companies.java мог их найти
+
         mDatabase = FirebaseDatabase.getInstance().getReference("Organizations");
 
         etName = findViewById(R.id.et_company_name);
@@ -62,7 +62,7 @@ public class CreateCompany extends AppCompatActivity {
         HashMap<String, Object> orgData = new HashMap<>();
         orgData.put("id", orgId);
         orgData.put("name", name);
-        orgData.put("domain", domain); // Теперь сохраняем описание/специализацию
+        orgData.put("domain", domain);
         orgData.put("type", "organization");
 
         if (orgId != null) {
